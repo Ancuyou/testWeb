@@ -365,7 +365,7 @@
 
                     <!-- CTA Buttons -->
                     <div class="d-flex flex-wrap gap-3 mb-5 animate__animated animate__fadeInUp animate__delay-2s">
-                        <a href="#ask-question" class="btn btn-warning btn-lg px-4 py-3 shadow-lg hero-btn">
+                        <a th:href="@{/user/questions}" class="btn btn-warning btn-lg px-4 py-3 shadow-lg hero-btn">
                             <i class="fas fa-question-circle me-2"></i>Đặt câu hỏi ngay
                         </a>
                         <a href="#community" class="btn btn-outline-light btn-lg px-4 py-3 hero-btn">
@@ -613,7 +613,7 @@
                         </div>
                         <h5 class="text-muted mb-2">Chưa có hoạt động nào</h5>
                         <p class="text-muted mb-4">Bắt đầu đặt câu hỏi để nhận được tư vấn từ chuyên gia</p>
-                        <a href="#ask-question" class="btn btn-primary rounded-pill px-4">
+                        <a th:href="@{/user/questions}" class="btn btn-primary px-4 rounded-pill">
                             <i class="fas fa-plus-circle me-2"></i>Đặt câu hỏi ngay
                         </a>
                     </div>
@@ -991,7 +991,7 @@
             <!-- Right Column: Sidebar -->
             <div class="col-lg-4">
                 <!-- Hot Topics Card -->
-                <div class.card border-0 shadow-sm mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
                     <div class="card-header text-white py-3 border-0"
                          style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                         <h6 class="mb-0 fw-semibold">

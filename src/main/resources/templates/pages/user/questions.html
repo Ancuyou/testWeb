@@ -92,8 +92,14 @@
                         <div class="mb-3">
                             <label for="fieldFilter" class="form-label">Lĩnh vực</label>
                             <select id="fieldFilter" name="fieldId" class="form-select">
-                                <option value="">Tất cả Lĩnh vực</option>
+                                <option value="">Tất cả lĩnh vực</option>
+                                <option th:each="field : ${fields}"
+                                        th:value="${field.fieldID}"
+                                        th:text="${field.fieldName}"
+                                        th:selected="${field.fieldID == selectedFieldId}">
+                                </option>
                             </select>
+
                         </div>
 
                         <button type="submit" class="btn btn-outline-primary w-100">
@@ -341,67 +347,94 @@
         aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
+                <!-- header -->
+                <div class="modal-header">
+                    <h5 class="model-title" id="askQuestionModalLabel">
+                        <i class="fas fa-pen-to-square me-2"></i> Đặt câu hỏi mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-đismiss="modal" aria-label="Clase"></button>
+                </div>
                 <form th:action="@{/user/questions/ask}"
                       th:object="${questionDTO}"
                       method="post"
                       enctype="multipart/form-data">
-
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Tiêu đề câu hỏi</label>
-                        <input type="text"
-                               class="form-control"
-                               id="title"
-                               th:field="*{title}"
-                               placeholder="Nhập tiêu đề câu hỏi">
-                        <div class="text-danger" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="content" class="form-label">Nội dung</label>
-                        <textarea class="form-control"
-                                  id="content"
-                                  th:field="*{content}"
-                                  rows="4"
-                                  placeholder="Mô tả chi tiết câu hỏi của bạn"></textarea>
-                        <div class="text-danger" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="department" class="form-label">Khoa/Ban</label>
-                            <select class="form-select"
-                                    id="department"
-                                    th:field="*{departmentId}">
-                                <option value="">-- Chọn Khoa/Ban --</option>
-                                <option th:each="dept : ${departments}"
-                                        th:value="${dept.departmentID}"
-                                        th:text="${dept.departmentName}"></option>
-                            </select>
-                            <div class="text-danger" th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}"></div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                Tiêu đề câu hỏi <span class="text-danger">*</span></label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="title"
+                                   th:field="*{title}"
+                                   placeholder="Nhập tiêu đề câu hỏi" required>
+                            <div th:if="${#fields.hasErrors('title')}" class="invalid-feedback d-block">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                <span th:errors="*{title}"></span>
+                            </div>
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="field" class="form-label">Lĩnh vực cụ thể</label>
-                            <select class="form-select"
-                                    id="field"
-                                    th:field="*{fieldId}"
-                                    disabled>
-                                <option value="">-- Vui lòng chọn Khoa/Ban trước --</option>
-                            </select>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">
+                                Nội dung <span class="text-danger">*</span></label>
+                            <textarea class="form-control"
+                                      id="content"
+                                      th:field="*{content}"
+                                      rows="4"
+                                      placeholder="Mô tả chi tiết câu hỏi của bạn" required></textarea>
+                            <div th:if="${#fields.hasErrors('content')}" class="invalid-feedback d-block">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                <span th:errors="*{content}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">
+                                    Khoa/Ban <span class="text-danger">*</span></label>
+                                <select class="form-select"
+                                        id="department"
+                                        th:field="*{departmentId}" required>
+                                    <option value="">-- Chọn Khoa/Ban --</option>
+                                    <option th:each="dept : ${departments}"
+                                            th:value="${dept.departmentID}"
+                                            th:text="${dept.departmentName}"></option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('departmentId')}" class="invalid-feedback d-block">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    <span th:errors="*{departmentId}"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="field" class="form-label">Lĩnh vực cụ thể</label>
+                                <select class="form-select"
+                                        id="field"
+                                        th:field="*{fieldId}"
+                                        disabled>
+                                    <option value="">-- Vui lòng chọn Khoa/Ban trước --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="fileAttachment" class="form-label">Đính kèm tệp (nếu có)</label>
+                            <input type="file"
+                                   class="form-control"
+                                   id="fileAttachment"
+                                   name="file"
+                                   accept="image/*,.pdf,.doc,.docx,.ppt,.pptx">
+                            <small class="text-muted">Hỗ trợ: Ảnh, PDF, Word, PowerPoint</small>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="fileAttachment" class="form-label">Đính kèm tệp (nếu có)</label>
-                        <input type="file"
-                               class="form-control"
-                               id="fileAttachment"
-                               name="file"
-                               accept="image/*,.pdf,.doc,.docx,.ppt,.pptx">
-                        <small class="text-muted">Hỗ trợ: Ảnh, PDF, Word, PowerPoint</small>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Hủy
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Gửi câu hỏi
+                        </button>
                     </div>
-
-                    <button type="submit" class="btn btn-primary">Gửi câu hỏi</button>
                 </form>
             </div>
         </div>
@@ -516,6 +549,7 @@
 
                 console.log('✅ Modal shown');
             }
+
             function initDepartmentFieldCascade() {
                 const departmentSelect = document.getElementById('department');
                 const fieldSelect = document.getElementById('field');
@@ -535,35 +569,107 @@
                     }
 
                     // Fetch fields by department
-                    fetch(`/qaute/api/fields/${departmentId}`)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Network response was not ok');
-                            return response.json();
-                        })
+                    fetch(/*[[@{/api/fields/}]]*/ '/api/fields/' + departmentId)
+                        .then(response => response.json())
                         .then(fields => {
-                            fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực (nếu có) --</option>';
+                            fieldSelect.disabled = false;
+                            fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực (tùy chọn) --</option>';
+                            fields.forEach(field => {
+                                const option = document.createElement('option');
+                                option.value = field.fieldID;
+                                option.textContent = field.fieldName;
+                                fieldSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading fields:', error);
+                            fieldSelect.disabled = true;
+                            fieldSelect.innerHTML = '<option value="">-- Lỗi khi tải dữ liệu --</option>';
+                        });
+                });
+            }
 
-                            if (fields && fields.length > 0) {
+            function initFilterDepartmentFieldCascade() {
+                const departmentFilter = document.getElementById('departmentFilter');
+                const fieldFilter = document.getElementById('fieldFilter');
+
+                if (!departmentFilter || !fieldFilter) return;
+
+                departmentFilter.addEventListener('change', function() {
+                    const departmentId = this.value;
+                    const currentFieldValue = fieldFilter.value;
+
+                    // Clear field options
+                    fieldFilter.innerHTML = '<option value="">Tất cả lĩnh vực</option>';
+
+                    if (!departmentId) {
+                        // No department selected - load all fields
+                        fetch(/*[[@{/api/fields/all}]]*/ '/api/fields/all')
+                            .then(response => response.json())
+                            .then(fields => {
                                 fields.forEach(field => {
                                     const option = document.createElement('option');
                                     option.value = field.fieldID;
                                     option.textContent = field.fieldName;
-                                    fieldSelect.appendChild(option);
+                                    if (field.fieldID.toString() === currentFieldValue) {
+                                        option.selected = true;
+                                    }
+                                    fieldFilter.appendChild(option);
                                 });
-                            } else {
-                                fieldSelect.innerHTML = '<option value="">Không có lĩnh vực nào</option>';
-                            }
-
-                            fieldSelect.disabled = false;
-                        })
-                        .catch(error => {
-                            console.error('Error loading fields:', error);
-                            fieldSelect.innerHTML = '<option value="">Lỗi khi tải dữ liệu</option>';
-                            fieldSelect.disabled = false;
-                        });
+                            })
+                            .catch(error => console.error('Error loading all fields:', error));
+                    } else {
+                        // Department selected - load only fields for that department
+                        fetch(/*[[@{/api/fields/}]]*/ '/api/fields/' + departmentId)
+                            .then(response => response.json())
+                            .then(fields => {
+                                fields.forEach(field => {
+                                    const option = document.createElement('option');
+                                    option.value = field.fieldID;
+                                    option.textContent = field.fieldName;
+                                    if (field.fieldID.toString() === currentFieldValue) {
+                                        option.selected = true;
+                                    }
+                                    fieldFilter.appendChild(option);
+                                });
+                            })
+                            .catch(error => console.error('Error loading fields:', error));
+                    }
                 });
             }
+
+            initFilterDepartmentFieldCascade();
             initDepartmentFieldCascade();
+
+// Load fields on page load based on selected department
+            (function loadInitialFields() {
+                const selectedDeptId = '[[${selectedDepartmentId}]]';
+                const selectedFieldId = '[[${selectedFieldId}]]';
+                const fieldFilter = document.getElementById('fieldFilter');
+
+                if (!fieldFilter) return;
+
+                const url = selectedDeptId && selectedDeptId !== ''
+                    ? /*[[@{/api/fields/}]]*/ '/api/fields/' + selectedDeptId
+                    : /*[[@{/api/fields/all}]]*/ '/api/fields/all';
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(fields => {
+                        fieldFilter.innerHTML = '<option value="">Tất cả lĩnh vực</option>';
+                        fields.forEach(field => {
+                            const option = document.createElement('option');
+                            option.value = field.fieldID;
+                            option.textContent = field.fieldName;
+                            if (selectedFieldId && field.fieldID.toString() === selectedFieldId) {
+                                option.selected = true;
+                            }
+                            fieldFilter.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error loading initial fields:', error));
+            })();
+
         })();
     </script>
 </body>

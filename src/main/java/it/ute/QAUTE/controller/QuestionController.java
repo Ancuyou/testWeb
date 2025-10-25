@@ -231,4 +231,10 @@ public class QuestionController {
     public List<Field> getFieldsByDepartment(@PathVariable Integer departmentId) {
         return questionService.getFieldsByDepartmentId(departmentId);
     }
+
+    @GetMapping("/api/fields/all")
+    @ResponseBody
+    public List<Field> getAllFields() {
+        return questionService.getAllFields();
+    }
 }
