@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content, active)">
+<th:block th:replace="~{fragments/head :: head('QAUTE - Admin Dashboard')}"></th:block>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold fs-4" href="/admin/home">
+            <i class="fas fa-shield-alt me-2"></i>QAUTE Admin
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        <span>Admin</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/qaute/admin/profile"><i class="fas fa-user me-2"></i>Hồ sơ</a></li>
+                        <li><hr class="dropdown-divider"/></li>
+                        <li><a class="dropdown-item text-danger" href="/qaute/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid" style="margin-top: 70px;">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active=='users'}? 'active'"      th:href="@{/admin/users}"><i class="fas fa-users me-2"></i>Quản lý người dùng</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active=='consultants'}? 'active'" th:href="@{/admin/consultants}"><i class="fas fa-user-tie me-2"></i>Quản lý Consultant</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active=='managers'}? 'active'"    th:href="@{/admin/managers}"><i class="fas fa-user-shield me-2"></i>Quản lý Manager</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active=='departments'}? 'active'" th:href="@{/admin/departments}"><i class="fas fa-building me-2"></i>Quản lý Khoa/Ngành</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active=='refresh-tokens'}? 'active'" th:href="@{/admin/refresh-tokens}"><i class="fas fa-arrows-rotate me-2"></i>Quản lý phiên đăng nhập </a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active=='notifications'}? 'active'" th:href="@{/admin/notifications}"><i class="fas fa-bell me-2"></i>Quản lý thông báo</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Slot nội dung -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-with-fixed-sidebar">
+            <th:block th:replace="${content}"></th:block>
+        </main>
+    </div>
+</div>
+
+<style>
+    .border-left-primary { border-left: 4px solid #4e73df !important; }
+    .border-left-success { border-left: 4px solid #1cc88a !important; }
+    .border-left-info    { border-left: 4px solid #36b9cc !important; }
+    .border-left-warning { border-left: 4px solid #f6c23e  !important; }
+    .sidebar { position: sticky; top: 70px; height: calc(100vh - 70px); overflow-y: auto; }
+    .sidebar .nav-link { color: #333; padding: 12px 20px; }
+    .sidebar .nav-link:hover { background-color: #f8f9fa; }
+    .sidebar .nav-link.active { background-color: #4e73df; color: #fff; }
+</style>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/toast :: toast}"></div>
+</body>
+</html>

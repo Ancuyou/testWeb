@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content, active)">
+<th:block th:replace="~{fragments/head :: head('QAUTE - Manager Dashboard')}"></th:block>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top manager-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" href="/manager/home">
+            <i class="fas fa-crown me-2 text-warning"></i>
+            <span>QAUTE Manager</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item me-3 d-none d-md-block">
+                    <span class="text-light small fw-semibold" id="greeting"></span>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        <span class="fw-semibold text-light">Manager</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item" href="/qaute/manager/profile"><i class="fas fa-user-circle me-2"></i>Hồ sơ cá nhân</a></li>
+                        <li><hr class="dropdown-divider"/></li>
+                        <li><a class="dropdown-item text-danger" href="/qaute/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Layout Body -->
+<div class="container-fluid" style="margin-top: 70px;">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block manager-sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${active=='dashboard'}? 'active'" th:href="@{/manager/home}">
+                            <i class="fas fa-chart-line me-2"></i>Dashboard tổng quan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${active=='questions'}? 'active'" th:href="@{/manager/questions}">
+                            <i class="fas fa-question-circle me-2"></i>Quản lý câu hỏi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:classappend="${active=='fields'} ? 'active'"
+                           th:href="@{/manager/fields}">
+                            <i class="fas fa-layer-group me-2"></i>Quản lý lĩnh vực
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${active=='badcontents'}? 'active'" th:href="@{/manager/bad-contents}">
+                            <i class="fas fa-ban me-2"></i>Quản lý nội dung xấu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex justify-content-between align-items-center"
+                           data-bs-toggle="collapse"
+                           href="#collapseReports"
+                           role="button"
+                           th:classappend="${active == 'report' ? 'active' : 'collapsed'}"
+                           th:aria-expanded="${active == 'report' ? 'true' : 'false'}"
+                           aria-controls="collapseReports">
+                            <span><i class="fas fa-chart-bar me-2"></i>Báo cáo thống kê</span>
+                            <i class="fas fa-chevron-right small"></i>
+                        </a>
+
+                        <div class="collapse ps-3" id="collapseReports" th:classappend="${active == 'report' ? 'show' : ''}">
+                            <ul class="nav flex-column ms-2 border-start border-2 border-light-subtle ps-2">
+                                <li><a class="nav-link py-1" th:href="@{/manager/reports/questions}"><i class="fas fa-question-circle me-2"></i>Câu hỏi</a></li>
+                                <li><a class="nav-link py-1" th:href="@{/manager/reports/answers}"><i class="fas fa-reply me-2"></i>Câu trả lời</a></li>
+                                <li><a class="nav-link py-1" th:href="@{/manager/reports/consultants}"><i class="fas fa-user-tie me-2"></i>Tư vấn viên</a></li>
+                                <li><a class="nav-link py-1" th:href="@{/manager/reports/users}"><i class="fas fa-users me-2"></i>Người dùng</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${active=='faq'}? 'active'" th:href="@{/manager/faq}">
+                            <i class="fas fa-book-open me-2"></i>Thư viện FAQ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Nội dung chính -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <th:block th:replace="${content}"></th:block>
+        </main>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* ================= NAVBAR ================= */
+    .manager-navbar {
+        background: linear-gradient(90deg, #0f172a, #1e3a8a, #2563eb);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    }
+    .manager-navbar .navbar-brand span {
+        color: #facc15;
+        letter-spacing: 0.5px;
+    }
+    .manager-navbar .dropdown-menu {
+        border-radius: 10px;
+    }
+
+    /* ================= SIDEBAR ================= */
+    .manager-sidebar {
+        background: linear-gradient(180deg, #1e3a8a, #3b82f6);
+        color: #fff;
+        height: calc(100vh - 70px);
+        position: sticky;
+        top: 70px;
+        overflow-y: auto;
+        padding-top: 1rem;
+        box-shadow: inset -3px 0 8px rgba(0,0,0,0.15);
+    }
+
+    .manager-sidebar .nav-link {
+        color: #e2e8f0;
+        padding: 12px 20px;
+        border-radius: 8px;
+        transition: all 0.25s ease;
+        margin: 6px 10px;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+    .manager-sidebar .nav-link i {
+        width: 22px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .manager-sidebar .nav-link:hover {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        transform: translateX(4px);
+    }
+
+    .manager-sidebar .nav-link:hover i {
+        transform: scale(1.1);
+        transition: transform 0.2s ease;
+    }
+
+    .manager-sidebar .nav-link.active {
+        background: linear-gradient(90deg, #facc15, #fde68a);
+        color: #1e3a8a;
+        font-weight: 700;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.25);
+    }
+
+    /* ================= SCROLLBAR ================= */
+    .manager-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .manager-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.3);
+        border-radius: 3px;
+    }
+
+    /* ================= MAIN CONTENT ================= */
+    main {
+        padding-top: 25px;
+    }
+</style>
+
+<!-- Greeting Script -->
+<script>
+    const hour = new Date().getHours();
+    const greeting = document.getElementById('greeting');
+    if (hour < 12) greeting.textContent = 'Chào buổi sáng ☀️, Manager!';
+    else if (hour < 18) greeting.textContent = 'Chào buổi chiều 🌤️, Manager!';
+    else greeting.textContent = 'Chào buổi tối 🌙, Manager!';
+</script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/toast :: toast}"></div>
+</body>
+</html>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{fragments/head :: head('QAUTE - Hồ sơ cá nhân')}"></th:block>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+    <div class="container">
+        <a class="navbar-brand text-primary fw-bold fs-3" th:href="@{/user/home}">
+            <i class="fas fa-graduation-cap me-2"></i>QAUTE
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" th:href="@{/user/home}">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="/user/home#consultants">Tư vấn viên</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="/user/home#community">Cộng đồng</a>
+                </li>
+            </ul>
+            <th:block th:replace="~{fragments/userDropDown :: userDropdown(
+              ${account.profile.fullName},
+              ${account.profile.avatar},
+              false
+            )}"></th:block>
+        </div>
+    </div>
+</nav>
+
+<!-- Profile Section -->
+<section class="py-5" style="margin-top: 80px; min-height: 100vh; background-color: #f8f9fa;">
+    <div class="container">
+        <div class="row">
+            <!-- Left Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body text-center p-4">
+                        <div class="position-relative d-inline-block mb-3">
+                            <img th:src="@{${account.profile.avatar != null ? account.profile.avatar : '/images/default_avatar.png'}}"
+                                 class="rounded-circle border border-3 border-primary" alt="Avatar" width="120" height="120" id="avatarPreview">
+                            <button class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle shadow"
+                                    style="width: 35px; height: 35px;" onclick="document.getElementById('avatarInput').click()" type="button">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary position-absolute bottom-0 start-0 rounded-circle shadow"
+                                    style="width: 35px; height: 35px;"
+                                    onclick="resetAvatar()"
+                                    type="button"
+                                    title="Xóa ảnh đại diện"
+                                    th:if="${account.profile.avatar != null && account.profile.avatar != '/images/default_avatar.png'}">
+                                <i class="fas fa-times fa-lg"></i>
+                            </button>
+                        </div>
+                        <h5 class="mb-1" th:text="${account.profile.fullName}">Tên người dùng</h5>
+                        <p class="text-muted small mb-2">
+                            <span th:if="${user != null && user.roleName != null}" th:text="${user.roleName}">Vai trò</span>
+                            <span th:unless="${user != null && user.roleName != null}">Chưa cập nhật vai trò</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Hoạt động của bạn</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <div>
+                                <i class="fas fa-question-circle text-primary fa-lg me-2"></i>
+                                <span>Câu hỏi</span>
+                            </div>
+                            <strong class="text-primary">12</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <div>
+                                <i class="fas fa-comment text-success fa-lg me-2"></i>
+                                <span>Phản hồi</span>
+                            </div>
+                            <strong class="text-success">28</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-user-tie text-info fa-lg me-2"></i>
+                                <span>Tư vấn viên</span>
+                            </div>
+                            <strong class="text-info">5</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h4 class="mb-0"><i class="fas fa-user-edit me-2 text-primary"></i>Chỉnh sửa hồ sơ cá nhân</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Success/Error Messages -->
+                        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span th:text="${message}">Cập nhật thành công!</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <span th:text="${error}">Có lỗi xảy ra!</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <div th:if="${param.otpSent}" class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-paper-plane me-2"></i> Đã gửi OTP. Vui lòng kiểm tra email/SMS.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <div th:if="${param.otpVerified}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check me-2"></i> OTP hợp lệ. Bạn có thể đặt mật khẩu mới bên dưới.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <div th:if="${param.otpError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-times-circle me-2"></i> OTP không đúng hoặc đã hết hạn.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <!-- Profile update (giữ nguyên nếu bạn đã có mapping /home/profile/update ở controller khác) -->
+                        <form th:action="@{/home/profile/update}" method="post" enctype="multipart/form-data">
+                            <!-- Avatar Upload (Hidden) -->
+                            <input type="file" id="avatarInput" name="avatarFile" accept="image/*" style="display: none;" onchange="previewAvatar(this)">
+
+                            <!-- Basic Information -->
+                            <div class="mb-4">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin cơ bản
+                                </h5>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="fullName" class="form-label fw-semibold">
+                                            Họ và tên <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="fullName" name="fullName"
+                                               th:value="${account.profile.fullName}"
+                                               placeholder="Nhập họ tên đầy đủ" required>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Chúng tôi có thể gọi bạn bằng tên gì?
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label fw-semibold">Số điện thoại</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            <input type="tel" class="form-control" id="phone" name="phone"
+                                                   th:value="${account.profile.phone}"
+                                                   placeholder="0123456789"
+                                                   pattern="[0-9]{10,11}">
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Số điện thoại 10-11 chữ số
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Account Information -->
+                            <div class="mb-4">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-key me-2 text-primary"></i>Thông tin tài khoản
+                                </h5>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label fw-semibold">
+                                            Email <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            <input type="email" class="form-control bg-light" id="email"
+                                                   th:value="${account.email}" readonly>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class="fas fa-lock me-1"></i>Email không thể thay đổi
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="username" class="form-label fw-semibold">Tên đăng nhập</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <input type="text" class="form-control bg-light" id="username"
+                                                   th:value="${account.username}" readonly>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class="fas fa-lock me-1"></i>Tên đăng nhập không thể thay đổi
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- MÃ SINH VIÊN -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="studentCode" class="form-label fw-semibold">Mã sinh viên</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                            <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    id="studentCode"
+                                                    name="studentCode"
+                                                    th:value="${user != null ? user.studentCode : ''}"
+                                                    placeholder="VD: 21IT0123"
+                                                    maxlength="20">
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Dành cho sinh viên và cựu sinh viên
+                                        </div>
+                                    </div>
+                                    <!-- Thêm đoạn code này vào form, sau phần studentCode -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="roleName" class="form-label fw-semibold">
+                                            Vai trò <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                            <select class="form-select" id="roleName" name="roleName" required>
+                                                <option value="" disabled th:selected="${user == null || user.roleName == null}">
+                                                    -- Chọn vai trò của bạn --
+                                                </option>
+                                                <option value="SinhVien" th:selected="${user != null && user.roleName?.name() == 'SinhVien'}">
+                                                    Sinh viên
+                                                </option>
+                                                <option value="HocSinh" th:selected="${user != null && user.roleName?.name() == 'HocSinh'}">
+                                                    Học sinh
+                                                </option>
+                                                <option value="PhuHuynh" th:selected="${user != null && user.roleName?.name() == 'PhuHuynh'}">
+                                                    Phụ huynh
+                                                </option>
+                                                <option value="CuuSinhVien" th:selected="${user != null && user.roleName?.name() == 'CuuSinhVien'}">
+                                                    Cựu sinh viên
+                                                </option>
+                                                <option value="Khac" th:selected="${user != null && user.roleName?.name() == 'Khac'}">
+                                                    Khác
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Chọn vai trò phù hợp để nhận tư vấn chính xác
+                                        </div>
+                                    </div>
+                                    <!-- MẬT KHẨU + NÚT ĐỔI MẬT KHẨU (MỞ MODAL) -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label fw-semibold">Mật khẩu</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <input type="password" class="form-control bg-light" id="password" value="••••••••" readonly>
+                                            <button type="button" class="btn btn-outline-primary"
+                                                    onclick="openModalAndRequestOtp()"
+                                                    th:if="${param.otpVerified == null}">
+                                                <i class="fas fa-key me-1"></i>Đổi mật khẩu
+                                            </button>
+                                            <button type="button" class="btn btn-success" disabled
+                                                    th:if="${param.otpVerified != null}">
+                                                <i class="fas fa-check me-1"></i>Đã xác minh OTP
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Sau khi OTP hợp lệ: hiện 2 ô mật khẩu mới, lưu CHUNG /update -->
+                                <div class="row g-3 mb-1"
+                                     th:if="${param.otpVerified != null}">
+                                    <div class="col-md-6">
+                                        <label for="newPassword" class="form-label fw-semibold">Mật khẩu mới</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <input type="password" class="form-control" id="newPassword" name="newPassword"
+                                                   placeholder="Ít nhất 8 ký tự" minlength="8" required>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePw('newPassword')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text"><i class="fas fa-info-circle me-1"></i>Bỏ trống nếu không muốn đổi.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="confirmPassword" class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
+                                                   placeholder="Nhập lại mật khẩu mới" minlength="8" required>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePw('confirmPassword')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="border-top pt-4 mt-4">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                    </button>
+                                    <button type="reset" class="btn btn-outline-secondary px-4">
+                                        <i class="fas fa-undo me-2"></i>Đặt lại
+                                    </button>
+                                    <a th:href="@{/user/home}" class="btn btn-outline-danger px-4 ms-auto">
+                                        <i class="fas fa-times me-2"></i>Hủy
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Additional Info Card -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-lightbulb me-2 text-warning"></i>Mẹo hữu ích</h6>
+                        <ul class="mb-0">
+                            <li class="mb-2">Cập nhật đầy đủ thông tin giúp tư vấn viên hiểu bạn tốt hơn</li>
+                            <li class="mb-2">Chọn đúng vai trò để nhận được tư vấn phù hợp nhất</li>
+                            <li class="mb-2">Thêm số điện thoại để nhận thông báo quan trọng</li>
+                            <li>Thay đổi avatar để cá nhân hóa tài khoản của bạn</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Hidden form fallback để POST send-otp nếu fetch lỗi hoặc bị chặn -->
+<form id="sendOtpForm" th:action="@{/home/profile/send-otp}" method="post" style="display:none"></form>
+
+<!-- Modal: Đổi mật khẩu (thuần form POST theo MVC) -->
+<div class="modal fade" id="changePwModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-key me-2 text-primary"></i>Đổi mật khẩu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="otpJustSentNote" class="alert alert-info d-none" role="alert">
+                    <i class="fas fa-paper-plane me-1"></i> OTP đã gửi. Vui lòng kiểm tra email/SMS.
+                </div>
+                <hr class="my-3">
+
+                <!-- BƯỚC 2: XÁC MINH OTP (6 ô) -->
+                <form th:action="@{/home/profile/verify-otp}" method="post" onsubmit="return onOtpSubmit(event)">
+                    <!-- hidden để gửi chuỗi 6 số lên controller -->
+                    <input type="hidden" name="otp" id="otpHidden">
+
+                    <label class="form-label fw-semibold">Nhập OTP để xác minh</label>
+
+                    <div id="otpBoxes" class="d-flex gap-2 justify-content-center my-2">
+                        <input class="otp-input" id="otp-0" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code">
+                        <input class="otp-input" id="otp-1" inputmode="numeric" maxlength="1" pattern="[0-9]*">
+                        <input class="otp-input" id="otp-2" inputmode="numeric" maxlength="1" pattern="[0-9]*">
+                        <input class="otp-input" id="otp-3" inputmode="numeric" maxlength="1" pattern="[0-9]*">
+                        <input class="otp-input" id="otp-4" inputmode="numeric" maxlength="1" pattern="[0-9]*">
+                        <input class="otp-input" id="otp-5" inputmode="numeric" maxlength="1" pattern="[0-9]*">
+                    </div>
+
+                    <!-- THÔNG BÁO LỖI/THÀNH CÔNG TỪ SERVER (Flash Attributes) -->
+                    <div id="otpMsg"
+                         class="small mb-3"
+                         th:if="${otpModalMsg}"
+                         th:text="${otpModalMsg}"
+                         th:classappend="${otpModalError} ? ' text-danger' : ' text-success'">
+                        <!-- server message -->
+                    </div>
+
+                    <div class="small text-muted mb-2">OTP có hiệu lực 3 phút. Bạn có thể dán 6 số vào ô đầu tiên.</div>
+
+                    <div class="d-grid">
+                        <button type="submit" id="btnVerifyOtp" class="btn btn-primary" disabled>
+                            <i class="fas fa-check me-1"></i>Xác minh OTP
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .otp-input { width: 44px; height: 48px; text-align: center; font-size: 1.25rem; border: 1px solid #ced4da; border-radius: .375rem; }
+    .otp-input:focus { outline: none; box-shadow: 0 0 0 .25rem rgba(13,110,253,.25); }
+</style>
+
+<script th:inline="javascript">
+    const DEFAULT_AVATAR_URL = /*[[@{/images/default_avatar.png}]]*/ '/images/default_avatar.png';
+    document.addEventListener('DOMContentLoaded', function(){
+        var params = new URLSearchParams(window.location.search);
+        var Modal  = window.bootstrap && window.bootstrap.Modal;
+        var shouldOpen = params.has('otpSent') || params.has('otpModal') || /*[[${otpModalMsg != null}]]*/ false;
+        try { if (sessionStorage.getItem('openChangePw') === '1') shouldOpen = true; } catch(e) {}
+
+        if (shouldOpen) {
+            var modalEl = document.getElementById('changePwModal');
+            if (modalEl && Modal) {
+                var m = new Modal(modalEl);
+                m.show();
+            }
+            var note = document.getElementById('otpJustSentNote');
+            if (note && params.has('otpSent')) note.classList.remove('d-none');
+            try { sessionStorage.removeItem('openChangePw'); } catch(e) {}
+        }
+    });
+
+
+    function previewAvatar(input) {
+        if (!input || !input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('avatarPreview');
+            if (img) img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+    function togglePw(id) {
+        const i = document.getElementById(id);
+        if (i) i.type = i.type === 'password' ? 'text' : 'password';
+    }
+
+    // URL động theo context-path & CSRF nếu có
+    const URL_SEND_OTP = /*[[@{/home/profile/send-otp}]]*/ '/home/profile/send-otp';
+    const headers = {};
+    (function(){
+        var h = document.querySelector('meta[name="_csrf_header"]');
+        var t = document.querySelector('meta[name="_csrf"]');
+        if (h && t) headers[h.content] = t.content;
+    })();
+
+    // Mở modal + gọi gửi OTP sang controller
+    function openModalAndRequestOtp() {
+        var Modal = window.bootstrap && window.bootstrap.Modal;
+        var modalEl = document.getElementById('changePwModal');
+        if (modalEl && Modal) { var m = new Modal(modalEl); m.show(); }
+        requestOtpViaJs();
+    }
+
+    function requestOtpViaJs() {
+        var note = document.getElementById('otpJustSentNote');
+        if (note) {
+            note.classList.remove('d-none','alert-danger');
+            note.classList.add('alert-info');
+            note.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Đang gửi OTP...';
+        }
+        fetch(URL_SEND_OTP, { method:'POST', credentials:'same-origin', headers: headers, redirect:'follow' })
+            .then(function(res){
+                var ok = res.status < 400; // coi 3xx (redirect) là success
+                if (note) {
+                    if (ok) {
+                        note.classList.remove('alert-danger');
+                        note.classList.add('alert-info');
+                        note.innerHTML = '<i class="fas fa-paper-plane me-1"></i> OTP đã gửi. Vui lòng kiểm tra email/SMS.';
+                    } else {
+                        note.classList.remove('alert-info');
+                        note.classList.add('alert-danger');
+                        note.innerHTML = '<i class="fas fa-times-circle me-1"></i> Không thể gửi OTP. Đang thử lại...';
+                        try { sessionStorage.setItem('openChangePw','1'); } catch(e) {}
+                        var f = document.getElementById('sendOtpForm'); if (f) f.submit();
+                    }
+                }
+            })
+            .catch(function(){
+                if (note) {
+                    note.classList.remove('alert-info');
+                    note.classList.add('alert-danger');
+                    note.innerHTML = '<i class="fas fa-times-circle me-1"></i> Lỗi mạng khi gửi OTP. Đang thử lại...';
+                }
+                try { sessionStorage.setItem('openChangePw','1'); } catch(e) {}
+                var f = document.getElementById('sendOtpForm'); if (f) f.submit();
+            });
+    }
+
+    // ===== OTP (6 ô) =====
+    function getOtp() {
+        const ids = ['otp-0','otp-1','otp-2','otp-3','otp-4','otp-5'];
+        return ids.map(id => (document.getElementById(id)?.value || '').trim()).join('');
+    }
+    function resetOtpBoxes() {
+        for (let i=0;i<6;i++) { const el = document.getElementById('otp-'+i); if (el) el.value = ''; }
+        const hidden = document.getElementById('otpHidden'); if (hidden) hidden.value = '';
+        toggleVerifyOtpEnabled();
+    }
+    function toggleVerifyOtpEnabled() {
+        const btn = document.getElementById('btnVerifyOtp');
+        const val = getOtp();
+        const hidden = document.getElementById('otpHidden'); if (hidden) hidden.value = val;
+        if (btn) btn.disabled = !/^[0-9]{6}$/.test(val);
+    }
+    function bindOtpInputs() {
+        const boxes = [];
+        for (let i=0;i<6;i++) { const el = document.getElementById('otp-'+i); if (el) boxes.push(el); }
+        boxes.forEach((box, idx) => {
+            box.addEventListener('input', (e) => {
+                e.target.value = (e.target.value || '').replace(/\D/g,'').slice(0,1);
+                if (e.target.value && idx < boxes.length - 1) boxes[idx+1].focus();
+                toggleVerifyOtpEnabled();
+            });
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && idx > 0) boxes[idx-1].focus();
+                if (e.key === 'ArrowLeft'  && idx > 0) boxes[idx-1].focus();
+                if (e.key === 'ArrowRight' && idx < boxes.length - 1) boxes[idx+1].focus();
+            });
+            box.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+                for (let i = 0; i < 6; i++) if (boxes[i]) boxes[i].value = text[i] || '';
+                (text.length >= 6 ? boxes[5] : boxes[Math.max(0, text.length-1)]).focus();
+                toggleVerifyOtpEnabled();
+            });
+        });
+        toggleVerifyOtpEnabled();
+    }
+    // Khi modal mở → set up 6 ô
+    document.getElementById('changePwModal')?.addEventListener('shown.bs.modal', function () {
+        resetOtpBoxes();
+        bindOtpInputs();
+        document.getElementById('otp-0')?.focus();
+    });
+
+    // Submit form theo MVC: ghép OTP vào hidden rồi cho submit
+    function onOtpSubmit(e) {
+        const otp = getOtp();
+        if (!/^[0-9]{6}$/.test(otp)) {
+            e.preventDefault();
+            return false;
+        }
+        const hidden = document.getElementById('otpHidden');
+        if (hidden) hidden.value = otp;
+        return true; // cho submit bình thường
+    }
+    function resetAvatar() {
+        if (confirm('Bạn có chắc muốn xóa ảnh đại diện và đặt về mặc định?')) {
+            // Đổi preview về ảnh mặc định
+            const img = document.getElementById('avatarPreview');
+            if (img) img.src = DEFAULT_AVATAR_URL;
+
+            // Clear file input
+            const fileInput = document.getElementById('avatarInput');
+            if (fileInput) fileInput.value = '';
+
+            // Tạo input hidden để báo controller reset avatar
+            let resetFlag = document.querySelector('input[name="resetAvatar"]');
+            if (!resetFlag) {
+                resetFlag = document.createElement('input');
+                resetFlag.type = 'hidden';
+                resetFlag.name = 'resetAvatar';
+                const form = document.querySelector('form[action$="/home/profile/update"]');
+                if (form) form.appendChild(resetFlag);
+            }
+            resetFlag.value = 'true';
+
+            // Ẩn nút X
+            const btn = event.target.closest('button');
+            if (btn) btn.style.display = 'none';
+        }
+    }
+    (function () {
+        const form = document.querySelector('form[action$="/home/profile/update"]');
+        if (!form) return;
+        const newPw = document.getElementById('newPassword');
+        const cfPw  = document.getElementById('confirmPassword');
+        if (!newPw || !cfPw) return;
+
+        let msg = document.getElementById('pwMatchMsg');
+        if (!msg) {
+            msg = document.createElement('div');
+            msg.id = 'pwMatchMsg';
+            msg.className = 'small mt-1';
+            cfPw.parentElement.appendChild(msg);
+        }
+
+        function validate() {
+            newPw.setCustomValidity('');
+            cfPw.setCustomValidity('');
+            msg.textContent = '';
+            msg.classList.remove('text-danger','text-success');
+
+            const a = (newPw.value || '').trim();
+            const b = (cfPw.value || '').trim();
+            if (a === '' && b === '') return true; // không đổi thì OK
+
+            if (a.length < 8) {
+                newPw.setCustomValidity('Mật khẩu mới phải ≥ 8 ký tự.');
+                msg.textContent = 'Mật khẩu mới phải ≥ 8 ký tự.';
+                msg.classList.add('text-danger');
+                return false;
+            }
+            if (a !== b) {
+                cfPw.setCustomValidity('Xác nhận mật khẩu không khớp.');
+                msg.textContent = 'Xác nhận mật khẩu không khớp.';
+                msg.classList.add('text-danger');
+                return false;
+            }
+            msg.textContent = 'Mật khẩu hợp lệ.';
+            msg.classList.add('text-success');
+            return true;
+        }
+
+        newPw.addEventListener('input', validate);
+        cfPw.addEventListener('input', validate);
+        form.addEventListener('submit', function (e) {
+            if (!validate()) {
+                e.preventDefault();
+                (cfPw.validationMessage ? cfPw : newPw).reportValidity();
+            }
+        });
+    })();
+</script>
+
+<!-- Include footer fragment -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

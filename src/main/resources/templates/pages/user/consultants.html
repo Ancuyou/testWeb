@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/head :: head('QAUTE - Danh sách tư vấn viên')}"></th:block>
+    <style>
+        .consultant-card {
+            transition: all 0.3s ease;
+        }
+        .consultant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .online-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #28a745;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .offline-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            display: inline-block;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand text-primary fw-bold fs-3" href="/user/home">
+                <i class="fas fa-graduation-cap me-2"></i>QAUTE
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="/user/home">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold active" href="/user/consultants">Tư vấn viên</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="/user/history">Lịch sử</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img th:if="${currentUserProfile.avatar}" th:src="${currentUserProfile.avatar}" class="rounded-circle me-2" alt="Avatar" width="32" height="32">
+                            <img th:unless="${currentUserProfile.avatar}" src="https://via.placeholder.com/32" class="rounded-circle me-2" alt="Avatar" width="32" height="32">
+                            <span class="fw-semibold" th:text="${currentUserProfile.fullName}">Nguyễn Văn A</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/user/profile"><i class="fas fa-user me-2"></i>Hồ sơ cá nhân</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container" style="margin-top: 100px; min-height: 70vh;">
+        <h2 class="mb-4">Danh sách tư vấn viên</h2>
+        
+        <!-- Search and Filter -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchConsultant" placeholder="Tìm kiếm tư vấn viên...">
+                    <button class="btn btn-primary" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-md-end">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary active">Tất cả</button>
+                        <button type="button" class="btn btn-outline-primary">Đang online</button>
+                        <button type="button" class="btn btn-outline-primary">Chuyên gia</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Consultants List -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col" th:each="consultant : ${consultants}">
+                <div class="card h-100 border-0 shadow-sm consultant-card">
+                    <div class="card-body text-center p-4">
+                        <div class="position-relative d-inline-block mb-3">
+                            <img th:if="${consultant.avatar}" th:src="${consultant.avatar}" class="rounded-circle" alt="Consultant" width="100" height="100">
+                            <img th:unless="${consultant.avatar}" src="https://via.placeholder.com/100" class="rounded-circle" alt="Consultant" width="100" height="100">
+                            <span th:if="${consultant.isOnline}" class="position-absolute bottom-0 end-0 bg-success rounded-circle p-1 border border-white"></span>
+                            <span th:unless="${consultant.isOnline}" class="position-absolute bottom-0 end-0 bg-secondary rounded-circle p-1 border border-white"></span>
+                        </div>
+                        <h5 class="card-title" th:text="${consultant.fullName}">Họ tên tư vấn viên</h5>
+                        <p class="text-muted mb-2" th:text="${consultant.specialization ?: 'Chuyên viên tư vấn'}">Chuyên viên tư vấn</p>
+                        
+                        <div class="mb-3">
+                            <span class="badge bg-primary me-1">Tâm lý</span>
+                            <span class="badge bg-info">Học tập</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <small class="text-muted ms-1">(4.9)</small>
+                            </div>
+                            <div>
+                                <span th:if="${consultant.isOnline}" class="text-success">
+                                    <i class="fas fa-circle me-1 small"></i>Online
+                                </span>
+                                <span th:unless="${consultant.isOnline}" class="text-secondary">
+                                    <i class="fas fa-circle me-1 small"></i>Offline
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a th:href="@{/user/chat/{profileId}(profileId=${consultant.profileID})}" class="btn btn-primary">
+                                <i class="fas fa-comment me-2"></i>Chat ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Trang trước</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Trang sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+    <script>
+        // Search functionality
+        document.getElementById('searchConsultant').addEventListener('keyup', function() {
+            let filter = this.value.toUpperCase();
+            let cards = document.querySelectorAll('.consultant-card');
+            
+            cards.forEach(card => {
+                let name = card.querySelector('.card-title').textContent;
+                if (name.toUpperCase().indexOf(filter) > -1) {
+                    card.parentElement.style.display = "";
+                } else {
+                    card.parentElement.style.display = "none";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

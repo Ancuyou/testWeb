@@ -1,0 +1,156 @@
+<th:block th:replace="~{pages/admin/layout :: layout(~{::notifications_content}, 'notifications')}">
+
+  <th:block th:fragment="notifications_content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+      <h1 class="h2">
+        <i class="fas fa-bell me-2"></i>Quản lý thông báo hệ thống
+      </h1>
+      <a class="btn btn-primary" th:href="@{/admin/notifications/new}">
+        <i class="fas fa-plus me-2"></i>Thêm thông báo
+      </a>
+    </div>
+      <!-- Hiển thị thông báo kết quả -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <!-- Form tìm kiếm -->
+    <form th:action="@{/admin/notifications}" method="get" class="row mb-3">
+      <div class="col-md-9">
+        <input type="text" name="q" class="form-control" th:value="${q}"
+               placeholder="Tìm theo tiêu đề, nội dung, người gửi..."/>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-search me-2"></i>Tìm kiếm
+        </button>
+      </div>
+    </form>
+
+    <!-- Bảng danh sách thông báo -->
+    <div class="card shadow">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>Người gửi</th>
+              <th>Đối tượng</th>
+              <th>Tiêu đề</th>
+              <th>Ngày tạo</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="n : ${notifications}">
+              <td th:text="${n.notificationID}">1</td>
+              <td th:text="${n.sender != null ? n.sender.username : 'N/A'}">Admin</td>
+              <td th:text="${n.targetType}">USER</td>
+              <td th:text="${n.title}">Thông báo cập nhật hệ thống</td>
+              <td th:text="${n.createdDate != null ? #dates.format(n.createdDate, 'dd/MM/yyyy HH:mm') : 'N/A'}">14/10/2025</td>
+              <td>
+                                <span th:text="${n.status}"
+                                      th:classappend="${n.status == 'Xuất bản'} ? 'badge bg-success' : (${n.status == 'Nháp'} ? 'badge bg-secondary' : 'badge bg-warning')">
+                                    Nháp
+                                </span>
+              </td>
+              <td class="text-nowrap">
+                <a class="btn btn-sm btn-warning"
+                   th:href="@{/admin/notifications/edit/{id}(id=${n.notificationID})}"
+                   title="Sửa thông báo">
+                  <i class="fas fa-edit"></i>
+                </a>
+                  <form th:action="@{/admin/notifications/delete/{id}(id=${n.notificationID})}"
+                        method="post"
+                        class="d-inline"
+                        onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo này?');">
+                      <button type="submit" class="btn btn-sm btn-danger" title="Xóa thông báo">
+                          <i class="fas fa-trash"></i>
+                      </button>
+                  </form>
+              </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(notifications)}">
+              <td colspan="8" class="text-center text-muted py-4">
+                Không có thông báo nào.
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Phân trang -->
+        <nav th:if="${totalPages > 1}">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+              <a class="page-link"
+                 th:href="@{/admin/notifications(page=${currentPage - 1}, size=${size}, q=${q})}">
+                Trước
+              </a>
+            </li>
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(1, totalPages)}"
+                th:classappend="${i == currentPage} ? 'active'">
+              <a class="page-link"
+                 th:text="${i}"
+                 th:href="@{/admin/notifications(page=${i}, size=${size}, q=${q})}">
+                1
+              </a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+              <a class="page-link"
+                 th:href="@{/admin/notifications(page=${currentPage + 1}, size=${size}, q=${q})}">
+                Sau
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <p class="text-muted mb-0">
+              Hiển thị <span th:text="${#lists.size(notifications)}"></span> /
+              <span th:text="${totalItems}"></span> thông báo
+            </p>
+            <div class="d-flex align-items-center">
+              <label class="me-2 mb-0">Số dòng:</label>
+              <form th:action="@{/admin/notifications}" method="get" class="d-inline">
+                <input type="hidden" name="page" value="1"/>
+                <input type="hidden" name="q" th:value="${q}"/>
+                <select name="size" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                  <option th:each="opt : ${pageSizeOptions}"
+                          th:value="${opt}"
+                          th:text="${opt}"
+                          th:selected="${opt == size}">5</option>
+                </select>
+              </form>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </div>
+  </th:block>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.remove('show');  // làm fade-out mượt
+                    alert.classList.add('fade');
+                    setTimeout(() => {
+                        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        bsAlert.close(); // đóng hoàn toàn
+                    }, 500); // chờ hiệu ứng fade-out 0.5s
+                }, 3000); // tự ẩn sau 3 giây
+            });
+        });
+    </script>
+</th:block>

@@ -1,0 +1,366 @@
+<th:block th:replace="~{pages/manager/layout-manager :: layout(~{::answers_content}, 'report')}">
+    <th:block th:fragment="answers_content">
+        <div class="container-fluid py-4">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1 text-dark fw-bold">
+                        <i class="fas fa-reply text-primary me-2"></i> Báo cáo Câu trả lời
+                    </h2>
+                    <p class="text-muted small mb-0">Thống kê và phân tích hiệu suất tư vấn</p>
+                </div>
+                <a th:href="@{/manager/reports/questions}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i> Báo cáo Câu hỏi
+                </a>
+            </div>
+
+            <!-- Bộ lọc thời gian -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <form th:action="@{/manager/reports/answers}" method="get" class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-day me-1"></i> Từ ngày
+                            </label>
+                            <input type="datetime-local" name="startDate" class="form-control form-control-lg"
+                                   th:value="${startDate}" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-check me-1"></i> Đến ngày
+                            </label>
+                            <input type="datetime-local" name="endDate" class="form-control form-control-lg"
+                                   th:value="${endDate}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">
+                                <i class="fas fa-filter me-2"></i>Lọc
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tổng quan -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg h-100 overflow-hidden position-relative"
+                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-semibold mb-2" style="letter-spacing: 1px;">
+                                        Tổng số câu trả lời
+                                    </h6>
+                                    <h2 class="display-4 fw-bold mb-0" th:text="${totalAnswers}">0</h2>
+                                </div>
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                    <i class="fas fa-comments fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-chart-line me-2"></i>
+                                <span class="small">Trong khoảng thời gian đã chọn</span>
+                            </div>
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 opacity-25" style="font-size: 120px; line-height: 1; margin: -20px;">
+                            <i class="fas fa-reply"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg h-100 overflow-hidden position-relative"
+                         style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-semibold mb-2" style="letter-spacing: 1px;">
+                                        Thời gian phản hồi TB
+                                    </h6>
+                                    <h2 class="display-4 fw-bold mb-0">
+                                        <span th:text="${#numbers.formatDecimal(avgResponseTime, 1, 1)}">0.0</span>
+                                        <span class="h5 fw-normal">giờ</span>
+                                    </h2>
+                                </div>
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-hourglass-half me-2"></i>
+                                <span class="small">Tốc độ xử lý trung bình</span>
+                            </div>
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 opacity-25" style="font-size: 120px; line-height: 1; margin: -20px;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-user-tie text-primary me-2"></i>
+                                Hiệu suất Tư vấn viên
+                            </h5>
+                            <p class="text-muted small mb-0">Số lượng câu trả lời theo từng tư vấn viên</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartConsultant" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-calendar-alt text-success me-2"></i>
+                                Xu hướng theo Thời gian
+                            </h5>
+                            <p class="text-muted small mb-0">Phân bố câu trả lời theo ngày</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartDate" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <style>
+            body {
+                background-color: #f8f9fa;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            .card {
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+            }
+
+            .form-control:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none;
+                transition: all 0.3s;
+            }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+
+            .btn-outline-primary {
+                border-color: #667eea;
+                color: #667eea;
+                transition: all 0.3s;
+            }
+
+            .btn-outline-primary:hover {
+                background: #667eea;
+                border-color: #667eea;
+                transform: translateY(-2px);
+            }
+        </style>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script th:inline="javascript">
+            // Dữ liệu từ server - SỬA ĐÃ: Dùng fullName thay vì name
+            const consultantLabels = [
+                /*[# th:each="a : ${answersByConsultant}"]*/
+                /*[[${a.fullName}]]*/,
+                /*[/]*/
+            ];
+
+            const consultantData = [
+                /*[# th:each="a : ${answersByConsultant}"]*/
+                /*[[${a.count}]]*/,
+                /*[/]*/
+            ];
+
+            const dateLabels = [
+                /*[# th:each="d : ${answersByDate}"]*/
+                /*[[${d.date}]]*/,
+                /*[/]*/
+            ];
+
+            const dateData = [
+                /*[# th:each="d : ${answersByDate}"]*/
+                /*[[${d.count}]]*/,
+                /*[/]*/
+            ];
+
+            // Cấu hình màu sắc gradient
+            const gradientColors = [
+                { start: 'rgba(102, 126, 234, 0.8)', end: 'rgba(118, 75, 162, 0.8)' },
+                { start: 'rgba(240, 147, 251, 0.8)', end: 'rgba(245, 87, 108, 0.8)' },
+                { start: 'rgba(250, 112, 154, 0.8)', end: 'rgba(254, 225, 64, 0.8)' },
+                { start: 'rgba(72, 198, 239, 0.8)', end: 'rgba(111, 134, 214, 0.8)' },
+                { start: 'rgba(251, 200, 212, 0.8)', end: 'rgba(151, 149, 240, 0.8)' }
+            ];
+
+            // Chart 1 - Bar Chart (Tư vấn viên)
+            const ctxConsultant = document.getElementById("chartConsultant").getContext('2d');
+            new Chart(ctxConsultant, {
+                type: "bar",
+                data: {
+                    labels: consultantLabels,
+                    datasets: [{
+                        label: "Số câu trả lời",
+                        data: consultantData,
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#f5576c',
+                            '#4facfe'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 13, weight: '500' },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#2d3748',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            displayColors: false,
+                            cornerRadius: 8,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e2e8f0',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#4a5568'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#4a5568'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2 - Line Chart (Theo ngày)
+            const ctxDate = document.getElementById("chartDate").getContext('2d');
+            const gradientFill = ctxDate.createLinearGradient(0, 0, 0, 300);
+            gradientFill.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
+            gradientFill.addColorStop(1, 'rgba(102, 126, 234, 0.0)');
+
+            new Chart(ctxDate, {
+                type: "line",
+                data: {
+                    labels: dateLabels,
+                    datasets: [{
+                        label: "Số câu trả lời mỗi ngày",
+                        data: dateData,
+                        fill: true,
+                        tension: 0.4,
+                        backgroundColor: gradientFill,
+                        borderColor: '#667eea',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#764ba2',
+                        pointHoverBorderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 13, weight: '500' },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#667eea',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            displayColors: false,
+                            cornerRadius: 8,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e2e8f0',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#4a5568'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: '#f7fafc',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#4a5568'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+
+    </th:block>
+</th:block>

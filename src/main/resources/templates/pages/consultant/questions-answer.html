@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{fragments/head :: head('QAUTE - Cộng đồng Hỏi & Đáp')}"></th:block>
+    <style>
+        .answer-form {
+            display: none;
+        }
+
+        .question-card.highlight {
+            animation: highlightFade 2s ease-in-out;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.5) !important;
+        }
+
+        @keyframes highlightFade {
+            0% {
+                background-color: #fff3cd;
+            }
+
+            100% {
+                background-color: white;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <th:block th:replace="~{fragments/consultant/consultant-navbar :: consultant-navbar}"></th:block>
+
+    <main style="padding-top: 80px; background-color: #f8f9fa; min-height: 100vh;">
+        <div class="container py-5">
+            <div class="card border-0 shadow-sm mb-4 text-center p-4 rounded-3"
+                style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white;">
+                <h1 class="fw-bold display-5">Cộng đồng Hỏi & Đáp</h1>
+                <p class="lead mb-4">Bạn có thắc mắc? Hãy đặt câu hỏi để nhận được sự giúp đỡ từ cộng đồng và các chuyên
+                    gia.</p>
+                <button class="btn btn-warning btn-lg fw-bold" data-bs-toggle="modal"
+                    data-bs-target="#askQuestionModal">
+                    <i class="fas fa-pen-to-square me-2"></i>Đặt câu hỏi ngay
+                </button>
+            </div>
+
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="col-md-5">
+                            <select class="form-select">
+                                <option selected>Sắp xếp theo: Mới nhất</option>
+                                <option>Phổ biến nhất (nhiều lượt xem)</option>
+                                <option>Nhiều câu trả lời nhất</option>
+                                <option>Chưa được trả lời</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- QUESTIONS LIST -->
+                    <div th:each="question, iterStat : ${questions}" class="card border-0 shadow-sm mb-4 question-card"
+                        th:data-question-id="${question.questionID}"
+                        th:classappend="${highlightQuestionId != null and highlightQuestionId == question.questionID} ? 'border-warning border-3' : ''">
+
+                        <div class="card-header bg-white py-3">
+                            <div class="d-flex align-items-center">
+                                <img th:src="@{${question.user.profile.avatar != null ? question.user.profile.avatar : '/images/default_avatar.png'}}"
+                                    style="width: 40px; height: 40px;" class="rounded-circle me-3" alt="User Avatar">
+                                <div>
+                                    <h6 class="mb-0" th:text="${question.user.profile.fullName}">Tên người dùng</h6>
+                                    <small class="text-muted"
+                                        th:text="${#temporals.format(question.dateSend, 'dd/MM/yyyy HH:mm')}"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold mb-0" th:text="${question.title}">Tiêu đề câu hỏi</h5>
+                                <!-- REPORT BUTTON với data attributes -->
+                                <button type="button" class="btn btn-outline-danger btn-sm btn-report"
+                                    th:attr="data-type='question', data-id=${question.questionID}">
+                                    <i class="bi bi-flag"></i> Báo cáo
+                                </button>
+                            </div>
+
+                            <p class="card-text" th:text="${question.content}">Nội dung câu hỏi.</p>
+
+                            <div th:if="${question.fileAttachment != null and question.fileAttachment != ''}"
+                                class="mt-3">
+                                <div th:if="${#strings.toLowerCase(question.fileAttachment).endsWith('.jpg') 
+                                        or #strings.toLowerCase(question.fileAttachment).endsWith('.jpeg')
+                                        or #strings.toLowerCase(question.fileAttachment).endsWith('.png')
+                                        or #strings.toLowerCase(question.fileAttachment).endsWith('.gif')}">
+                                    <img th:src="@{${question.fileAttachment}}" alt="Ảnh đính kèm"
+                                        style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;">
+                                </div>
+                                <div th:unless="${#strings.toLowerCase(question.fileAttachment).endsWith('.jpg') 
+                                            or #strings.toLowerCase(question.fileAttachment).endsWith('.jpeg')
+                                            or #strings.toLowerCase(question.fileAttachment).endsWith('.png')
+                                            or #strings.toLowerCase(question.fileAttachment).endsWith('.gif')}">
+                                    <a th:href="@{${question.fileAttachment}}" target="_blank"
+                                        class="btn btn-outline-secondary btn-sm mt-2">
+                                        <i class="fas fa-paperclip me-1"></i> Tải tệp đính kèm
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 mt-2">
+                                <span class="badge bg-primary"
+                                    th:text="${question.department.departmentName}">Khoa</span>
+                                <span th:if="${question.field != null}" class="badge bg-secondary"
+                                    th:text="${question.field.fieldName}">Ngành</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary me-2">
+                                        <i class="fas fa-thumbs-up me-1"></i>0
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary me-2 btn-toggle-comments"
+                                        th:attr="data-target=|comments${iterStat.count}|">
+                                        <i class="fas fa-comment me-1"></i>
+                                        <span th:text="${#lists.size(question.answers)}">0</span>
+                                    </button>
+                                    <button th:if="${account != null and account.role.name() == 'Consultant'}"
+                                        class="btn btn-sm btn-success btn-toggle-answer"
+                                        th:attr="data-target=|answerForm${iterStat.count}|">
+                                        <i class="fas fa-reply me-1"></i>Trả lời
+                                    </button>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-eye me-1"></i> <span th:text="${question.views}">0</span> lượt xem
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ANSWERS SECTION -->
+                        <div class="card-footer bg-light" th:id="|comments${iterStat.count}|" style="display: none;">
+                            <h6 class="mb-3 small text-uppercase fw-bold">
+                                <span th:text="${#lists.size(question.answers)}">0</span> câu trả lời
+                            </h6>
+                            <div th:each="answer : ${question.answers}" class="d-flex mb-3">
+                                <img th:src="${answer.consultant.profile.avatar ?: 'https://via.placeholder.com/35'}"
+                                    class="rounded-circle me-3" alt="Consultant Avatar"
+                                    style="width: 35px; height: 35px;">
+                                <div class="flex-grow-1">
+                                    <div class="bg-white p-3 rounded border">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <strong class="me-2" th:text="${answer.consultant.profile.fullName}">Tên
+                                                    Consultant</strong>
+                                                <span class="badge bg-success">Tư vấn viên</span>
+                                            </div>
+                                            <small class="text-muted"
+                                                th:text="${#temporals.format(answer.dateAnswered, 'dd/MM/yyyy HH:mm')}"></small>
+                                            <button type="button" class="btn btn-outline-danger btn-sm btn-report"
+                                                th:attr="data-type='answer', data-id=${answer.answerID}">
+                                                <i class="bi bi-flag"></i> Báo cáo
+                                            </button>
+                                        </div>
+                                        <p class="mb-0 mt-2" th:text="${answer.content}">Nội dung câu trả lời.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${#lists.isEmpty(question.answers)}" class="text-center text-muted p-3">
+                                Chưa có câu trả lời nào cho câu hỏi này.
+                            </div>
+                        </div>
+
+                        <!-- ANSWER FORM -->
+                        <div class="card-footer answer-form" th:id="|answerForm${iterStat.count}|">
+                            <form th:action="@{/user/questions/answer}" method="post">
+                                <input type="hidden" name="questionId" th:value="${question.questionID}" />
+                                <div class="d-flex align-items-start">
+                                    <img th:src="${account?.profile?.avatar ?: 'https://via.placeholder.com/40'}"
+                                        class="rounded-circle me-3" width="40" height="40" alt="My Avatar">
+                                    <div class="flex-grow-1">
+                                        <textarea name="content" class="form-control" rows="3"
+                                            placeholder="Viết câu trả lời của bạn..." required></textarea>
+                                        <div class="text-end mt-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">Gửi trả lời</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- EMPTY STATE -->
+                    <div th:if="${questions == null or #lists.isEmpty(questions)}" class="card border-0 shadow-sm">
+                        <div class="card-body p-5 text-center">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có câu hỏi nào trong cộng đồng. Hãy là người đầu tiên!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-fire me-2 text-danger"></i>Chủ đề nổi bật</h6>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <a href="#"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                #HọcBổng<span class="badge bg-primary rounded-pill">14</span>
+                            </a>
+                            <a href="#"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                #ThựcTập<span class="badge bg-primary rounded-pill">12</span>
+                            </a>
+                            <a href="#"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                #ĐăngKýHọcPhần<span class="badge bg-primary rounded-pill">9</span>
+                            </a>
+                            <a href="#"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                #TuyểnDụng<span class="badge bg-primary rounded-pill">7</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0"><i class="fas fa-users me-2"></i>Đang Online (127)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="https://via.placeholder.com/25" class="rounded-circle me-2" alt="User">
+                                <small>Lê Văn Cường</small>
+                                <span class="badge bg-success ms-auto">Online</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="https://via.placeholder.com/25" class="rounded-circle me-2" alt="User">
+                                <small>Phạm Thị Dung</small>
+                                <span class="badge bg-success ms-auto">Online</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="https://via.placeholder.com/25" class="rounded-circle me-2" alt="User">
+                                <small>Hoàng Minh Tuấn</small>
+                                <span class="badge bg-success ms-auto">Online</span>
+                            </div>
+                            <div class="text-center">
+                                <small class="text-muted">và 124 người khác...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ASK QUESTION MODAL -->
+    <div class="modal fade" id="askQuestionModal" tabindex="-1" aria-labelledby="askQuestionModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form th:action="@{/user/questions/ask}" method="post" enctype="multipart/form-data">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="askQuestionModalLabel">
+                            <i class="fas fa-question-circle me-2"></i>Soạn câu hỏi của bạn
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label">Người hỏi</label>
+                            <input type="text" class="form-control bg-light" id="fullName"
+                                th:value="${account?.profile?.fullName}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Tiêu đề câu hỏi <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title"
+                                placeholder="Ví dụ: Làm thế nào để đăng ký học phần?" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Nội dung chi tiết <span
+                                    class="text-danger">*</span></label>
+                            <textarea class="form-control" id="content" name="content" rows="6"
+                                placeholder="Mô tả rõ ràng vấn đề bạn đang gặp phải..." required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">Chủ đề Khoa/Ban <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select" id="department" name="department.departmentID" required>
+                                    <option value="">-- Chọn Khoa/Ban liên quan --</option>
+                                    <option th:each="dept : ${departments}" th:value="${dept.departmentID}"
+                                        th:text="${dept.departmentName}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="field" class="form-label">Lĩnh vực cụ thể</label>
+                                <select class="form-select" id="field" name="field.fieldID">
+                                    <option value="">-- Chọn lĩnh vực (nếu có) --</option>
+                                    <option th:each="fld : ${fields}" th:value="${fld.fieldID}"
+                                        th:text="${fld.fieldName}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fileAttachment" class="form-label">Chọn tệp đính kèm (ảnh hoặc tài
+                                liệu):</label>
+                            <input class="form-control" type="file" id="fileAttachment" name="file"
+                                accept="image/*,.pdf,.doc,.docx,.ppt,.pptx">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Gửi câu hỏi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/report :: reportModal}"></div>
+
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        (function () {
+            'use strict';
+
+            console.log('🚀 Script loading...');
+
+            // Wait for DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                console.log('✅ DOM Ready, initializing...');
+
+                // Toggle Comments
+                document.querySelectorAll('.btn-toggle-comments').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const targetId = this.dataset.target;
+                        const target = document.getElementById(targetId);
+                        if (target) {
+                            target.style.display = target.style.display === 'none' ? 'block' : 'none';
+                        }
+                    });
+                });
+
+                // Toggle Answer Form
+                document.querySelectorAll('.btn-toggle-answer').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const targetId = this.dataset.target;
+                        const target = document.getElementById(targetId);
+                        if (target) {
+                            target.style.display = target.style.display === 'none' ? 'block' : 'none';
+                        }
+                    });
+                });
+
+                // Report Buttons
+                const reportButtons = document.querySelectorAll('.btn-report');
+                console.log('Found ' + reportButtons.length + ' report buttons');
+
+                reportButtons.forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const contentType = this.dataset.type;
+                        const contentId = this.dataset.id;
+
+                        console.log('Report clicked:', contentType, contentId);
+                        openReportModal(contentType, contentId);
+                    });
+                });
+
+                // Highlight question
+                const highlightId = '[[${highlightQuestionId}]]';
+                if (highlightId && highlightId !== '') {
+                    setTimeout(() => {
+                        const card = document.querySelector('[data-question-id="' + highlightId + '"]');
+                        if (card) {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 300);
+                }
+
+                // Reset report form on modal hide
+                const reportModal = document.getElementById('reportModal');
+                if (reportModal) {
+                    reportModal.addEventListener('hidden.bs.modal', function () {
+                        document.getElementById('reportForm').reset();
+                    });
+                }
+
+                console.log('✅ Initialization complete');
+            }
+
+            function openReportModal(contentType, contentId) {
+                console.log('Opening report modal:', contentType, contentId);
+
+                const modal = document.getElementById('reportModal');
+                const typeInput = document.getElementById('reportContentType');
+                const idInput = document.getElementById('reportContentId');
+
+                if (!modal) {
+                    console.error('❌ Modal not found');
+                    alert('Lỗi: Không tìm thấy form báo cáo');
+                    return;
+                }
+
+                if (!typeInput || !idInput) {
+                    console.error('❌ Inputs not found');
+                    alert('Lỗi: Form chưa sẵn sàng');
+                    return;
+                }
+
+                typeInput.value = contentType;
+                idInput.value = contentId;
+
+                console.log('Values set:', typeInput.value, idInput.value);
+
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                console.log('✅ Modal shown');
+            }
+        })();
+    </script>
+</body>
+
+</html>

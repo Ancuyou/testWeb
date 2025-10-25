@@ -1,0 +1,234 @@
+<!-- templates/fragments/consultant-questions.html -->
+<section th:fragment="consultant-questions" id="question-management" class="py-5">
+    <div class="container">
+        <!-- Questions Management Header -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+            <div>
+                <h2 class="fw-bold">Quản lý câu hỏi</h2>
+                <p class="text-muted">Xem và trả lời các câu hỏi từ sinh viên</p>
+            </div>
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Tìm kiếm câu hỏi...">
+                    <button class="btn btn-primary" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="btn btn-outline-primary">
+                    <i class="fas fa-filter me-1"></i> Lọc
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="questionsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                    Chờ xử lý <span class="badge bg-danger ms-1">8</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="in-progress-tab" data-bs-toggle="tab" data-bs-target="#in-progress" type="button" role="tab">
+                    Đang xử lý <span class="badge bg-warning ms-1">4</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="resolved-tab" data-bs-toggle="tab" data-bs-target="#resolved" type="button" role="tab">
+                    Đã giải quyết
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                    Tất cả
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content" id="questionsTabsContent">
+            <!-- Pending Questions Tab -->
+            <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+                <div class="row g-4">
+                    <!-- Question Card 1 -->
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Avatar" width="40" height="40">
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Nguyễn Văn A</h6>
+                                        <small class="text-muted">CNTT - Năm 2</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-danger">Mới</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold mb-3">Làm thế nào để đăng ký học phần trực tuyến?</h5>
+                                <p class="card-text mb-3">Em chưa biết cách đăng ký học phần trên hệ thống mới. Mong thầy/cô hướng dẫn chi tiết các bước thực hiện và thời gian đăng ký cho kỳ học tới.</p>
+                                <div class="d-flex align-items-center text-muted mb-3">
+                                    <i class="fas fa-tag me-2"></i>
+                                    <span class="badge bg-light text-dark me-1">Đăng ký học</span>
+                                    <span class="badge bg-light text-dark me-1">Hướng dẫn</span>
+                                    <span class="badge bg-light text-dark">Sinh viên mới</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted"><i class="far fa-clock me-1"></i> 23 phút trước</small>
+                                    <div>
+                                        <button class="btn btn-sm btn-primary me-1">Tiếp nhận</button>
+                                        <button class="btn btn-sm btn-outline-secondary">Chuyển tiếp</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Question Card 2 -->
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Avatar" width="40" height="40">
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Trần Thị B</h6>
+                                        <small class="text-muted">Kỹ thuật ô tô - Năm 3</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-danger">Khẩn cấp</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold mb-3">Thủ tục hoãn thi do bệnh lý</h5>
+                                <p class="card-text mb-3">Em bị ốm đột xuất và không thể tham gia kỳ thi môn Cơ học ngày mai. Em cần làm những thủ tục gì để xin hoãn thi và khi nào có thể thi lại?</p>
+                                <div class="d-flex align-items-center text-muted mb-3">
+                                    <i class="fas fa-tag me-2"></i>
+                                    <span class="badge bg-light text-dark me-1">Kỳ thi</span>
+                                    <span class="badge bg-light text-dark me-1">Hoãn thi</span>
+                                    <span class="badge bg-light text-dark">Thủ tục</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted"><i class="far fa-clock me-1"></i> 2 giờ trước</small>
+                                    <div>
+                                        <button class="btn btn-sm btn-primary me-1">Tiếp nhận</button>
+                                        <button class="btn btn-sm btn-outline-secondary">Chuyển tiếp</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Question Card 3 -->
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Avatar" width="40" height="40">
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Lê Văn C</h6>
+                                        <small class="text-muted">Quản trị kinh doanh - Năm 4</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-secondary">Thường</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold mb-3">Thông tin về chương trình thực tập tốt nghiệp</h5>
+                                <p class="card-text mb-3">Em đang chuẩn bị cho kỳ thực tập tốt nghiệp. Em muốn biết thông tin về các doanh nghiệp đối tác và quy trình đăng ký thực tập như thế nào?</p>
+                                <div class="d-flex align-items-center text-muted mb-3">
+                                    <i class="fas fa-tag me-2"></i>
+                                    <span class="badge bg-light text-dark me-1">Thực tập</span>
+                                    <span class="badge bg-light text-dark me-1">Tốt nghiệp</span>
+                                    <span class="badge bg-light text-dark">Hướng nghiệp</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted"><i class="far fa-clock me-1"></i> 5 giờ trước</small>
+                                    <div>
+                                        <button class="btn btn-sm btn-primary me-1">Tiếp nhận</button>
+                                        <button class="btn btn-sm btn-outline-secondary">Chuyển tiếp</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question Card 4 -->
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Avatar" width="40" height="40">
+                                    <div>
+                                        <h6 class="mb-0 fw-semibold">Phạm Thị D</h6>
+                                        <small class="text-muted">Kỹ thuật phần mềm - Năm 3</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-secondary">Thường</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold mb-3">Tìm tài liệu tham khảo về Machine Learning</h5>
+                                <p class="card-text mb-3">Em đang làm đồ án môn Machine Learning, nhưng không tìm được tài liệu tham khảo phù hợp. Thầy/cô có thể giới thiệu một số nguồn tài liệu và hướng dẫn không ạ?</p>
+                                <div class="d-flex align-items-center text-muted mb-3">
+                                    <i class="fas fa-tag me-2"></i>
+                                    <span class="badge bg-light text-dark me-1">Học liệu</span>
+                                    <span class="badge bg-light text-dark me-1">Đồ án</span>
+                                    <span class="badge bg-light text-dark">Công nghệ</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted"><i class="far fa-clock me-1"></i> 1 ngày trước</small>
+                                    <div>
+                                        <button class="btn btn-sm btn-primary me-1">Tiếp nhận</button>
+                                        <button class="btn btn-sm btn-outline-secondary">Chuyển tiếp</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <nav class="mt-4 d-flex justify-content-center">
+                    <ul class="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <!-- In Progress Questions Tab -->
+            <div class="tab-pane fade" id="in-progress" role="tabpanel" aria-labelledby="in-progress-tab">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Bạn có 4 câu hỏi đang xử lý. Cố gắng trả lời trong thời gian quy định.
+                </div>
+                <!-- Tab content would be similar to Pending tab -->
+                <p class="text-center text-muted my-5">
+                    <i class="fas fa-spinner fa-spin fa-3x mb-3"></i><br>
+                    Đang xử lý các câu hỏi...
+                </p>
+            </div>
+            
+            <!-- Resolved Questions Tab -->
+            <div class="tab-pane fade" id="resolved" role="tabpanel" aria-labelledby="resolved-tab">
+                <p class="text-center text-muted my-5">
+                    <i class="fas fa-check-circle fa-3x mb-3"></i><br>
+                    Các câu hỏi đã giải quyết sẽ hiển thị ở đây
+                </p>
+            </div>
+            
+            <!-- All Questions Tab -->
+            <div class="tab-pane fade" id="all" role="tabpanel" aria-labelledby="all-tab">
+                <p class="text-center text-muted my-5">
+                    <i class="fas fa-list fa-3x mb-3"></i><br>
+                    Tất cả các câu hỏi sẽ hiển thị ở đây
+                </p>
+            </div>
+        </div>
+    </div>
+</section>

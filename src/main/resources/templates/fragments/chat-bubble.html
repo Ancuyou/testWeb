@@ -1,0 +1,94 @@
+<div th:fragment="chat-bubble">
+<!-- User info for WebSocket (hidden) -->
+
+
+<div id="user-info" 
+     th:data-user-id="${account?.profile?.profileID}"
+     th:data-is-consultant="${#strings.equals(account?.role, 'Consultant')}"
+     th:data-role="${account?.role}"
+     style="display:none;">
+</div>
+
+<!-- Chat Launcher Button -->
+<button id="chat-launcher" class="chat-launcher">
+    <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<!-- Chat List Bubble -->
+<div id="chat-list-bubble" class="chat-list-bubble d-none">
+    <div class="card">
+        <div class="card-header bg-primary text-white py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Trò chuyện</h5>
+                <div class="chat-header-actions">
+    <button type="button" id="minimize-chat-list">
+        <i class="bi bi-dash-lg"></i>
+    </button>
+    <button type="button" id="close-chat-list">
+        <i class="bi bi-x-lg"></i>
+    </button>
+</div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group">
+                <!-- Contacts will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat Bubble -->
+<div id="chat-bubble" class="chat-bubble d-none">
+    <div class="card">
+        <div class="card-header bg-primary text-white py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="/qaute/images/avatar-placeholder.jpg" class="rounded-circle me-2" width="32" height="32" alt="Contact">
+                    <h6 id="chat-bubble-name" class="mb-0">Chat</h6>
+                </div>
+                <div>
+                    <button type="button" id="minimize-chat" class="btn btn-sm text-white">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <button type="button" id="close-chat" class="btn btn-sm text-white">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body" id="chat-messages" style="height: 300px; overflow-y: auto;">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="card-footer bg-white">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Nhập tin nhắn...">
+                <button class="btn btn-primary" type="button">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS cho chat messages */
+    #chat-messages .message-bubble {
+        max-width: 75%;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+    
+    /* Đảm bảo chat container không bị tràn */
+    #chat-bubble .card-body {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    /* Căn chỉnh avatar cho tin nhắn dài */
+    #chat-messages .user-avatar {
+        align-self: flex-start;
+    }
+</style>
+
+</div> <!-- End of chat-bubble fragment -->

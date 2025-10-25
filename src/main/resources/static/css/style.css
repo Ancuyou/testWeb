@@ -1,0 +1,45 @@
+/* style.css - custom styles */
+:root{
+    --primary:#0d6efd;
+    --warning:#ffc107;
+}
+body{
+    font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+    background:#fff;
+}
+.navbar-brand i{ color:var(--primary); }
+.navbar{ transition: box-shadow .2s ease; }
+.navbar.shadow-lg{ box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important; }
+
+
+/* Hero */
+#home{ padding-top:100px; padding-bottom:80px; }
+.display-4 .text-warning{ color: var(--warning); }
+
+
+/* Quick Stats */
+.bg-primary.text-white{ background:var(--primary) !important; }
+
+
+/* Cards */
+.card.border-0{ border:0 !important; }
+
+
+/* Floating ask button */
+.position-fixed .btn-warning{ transition: transform .25s ease; }
+
+
+/* Modal tweaks */
+.modal-header.bg-warning{ background:var(--warning) !important; }
+
+
+/* Small responsive tweaks */
+@media (max-width: 576px){
+    .display-4{ font-size:2rem; }
+}
+/*Hero Icon - home page*/
+.chat-animation {
+    width: 300px;
+    height: 300px;
+    margin: auto;
+}

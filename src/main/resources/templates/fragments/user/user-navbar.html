@@ -1,0 +1,30 @@
+<nav th:fragment="user-navbar" class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+    <div class="container">
+        <a class="navbar-brand text-primary fw-bold fs-3" th:href="@{/user/home}">
+            <i class="fas fa-graduation-cap me-2"></i>QAUTE
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" th:href="@{/user/home}">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" th:href="@{/user/consultants}">Tư vấn viên</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" th:href="@{/user/questions}">Cộng đồng</a>
+                </li>
+            </ul>
+
+            <th:block th:if="${account != null}" th:replace="~{fragments/userDropDown :: userDropdown(
+                ${account.profile?.fullName},
+                ${account.profile?.avatar},
+                false
+            )}"></th:block>
+
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,250 @@
+<th:block th:replace="~{pages/admin/layout :: layout(~{::refresh_tokens_content}, 'refresh-tokens')}">
+    <th:block th:fragment="refresh_tokens_content">
+        <div id="refresh-tokens" class="section-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2"><i class="fas fa-sync-alt me-2"></i>Quản lý Phiên Đăng Nhập</h1>
+                <form th:action="@{/admin/refresh-tokens/cleanup}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Xóa tất cả phiên đăng nhập hết hạn?');">
+                        <i class="fas fa-sync-alt me-2"></i>Dọn dẹp phiên hết hạn
+                    </button>
+                </form>
+            </div>
+
+            <!-- Search & Filter -->
+            <form th:action="@{/admin/refresh-tokens}" method="get" class="row mb-3">
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control" th:value="${q}"
+                           placeholder="Tìm theo Refresh ID, Device, Email hoặc Username...">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active" th:selected="${status == 'active'}">Đang hoạt động</option>
+                        <option value="expired" th:selected="${status == 'expired'}">Đã hết hạn</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+            </form>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title mb-0">Đang hoạt động</h6>
+                                    <h3 class="mb-0" th:text="${activeTokens}">0</h3>
+                                </div>
+                                <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-danger">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title mb-0">Đã hết hạn</h6>
+                                    <h3 class="mb-0" th:text="${expiredTokens}">0</h3>
+                                </div>
+                                <i class="fas fa-times-circle fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title mb-0">Tổng phiên</h6>
+                                    <h3 class="mb-0" th:text="${totalTokens}">0</h3>
+                                </div>
+                                <i class="fas fa-database fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>Refresh ID</th>
+                                <th>Thiết bị</th>
+                                <th>Email</th>
+                                <th>Username</th>
+                                <th>Ngày tạo</th>
+                                <th>Ngày hết hạn</th>
+                                <th>Trạng thái</th>
+                                <th class="text-nowrap">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="token, itStat : ${refreshTokens}"
+                                th:classappend="${!token.expiresAt.after(#dates.createNow())} ? 'table-danger'">
+                                <td>
+                                    <code class="text-primary"
+                                          th:text="${#strings.abbreviate(token.refreshId, 20)}">abc123...</code>
+                                </td>
+
+                                <td>
+                                    <i class="fas fa-mobile-alt me-1" aria-hidden="true"></i>
+                                    <span th:text="${token.deviceName ?: 'Không xác định'}">iPhone 13</span>
+                                </td>
+
+                                <td>
+                                    <small class="text-muted font-monospace"
+                                           th:text="${#strings.abbreviate(token.account.email, 30)}">email…</small>
+                                </td>
+
+                                <td>
+                                    <small class="text-muted font-monospace"
+                                           th:text="${#strings.abbreviate(token.account.username, 30)}">user…</small>
+                                </td>
+
+                                <td>
+                                    <small th:text="${#dates.format(token.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:30</small>
+                                </td>
+
+                                <td>
+                                    <small th:text="${#dates.format(token.expiresAt, 'dd/MM/yyyy HH:mm')}">01/02/2024 10:30</small>
+                                </td>
+
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${token.expiresAt.after(#dates.createNow())} ? 'bg-success' : 'bg-danger'"
+                                          th:text="${token.expiresAt.after(#dates.createNow())} ? 'Hoạt động' : 'Hết hạn'">
+                                      Hoạt động
+                                    </span>
+                                </td>
+                                <td class="text-nowrap">
+                                    <form th:action="@{/admin/refresh-token/revoke/{id}(id=${token.refreshId})}"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Thu hồi phiên đăng nhập này?');">
+                                        <input type="hidden" name="_method" value="delete"/>
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Thu hồi"
+                                                th:disabled="${!token.expiresAt.after(#dates.createNow())}">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(refreshTokens)}">
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-3x mb-3 d-block" aria-hidden="true"></i>
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav th:if="${totalPages > 1}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/admin/refresh-tokens(page=${currentPage - 1}, size=${size}, q=${q}, status=${status})}">Trước</a>
+                            </li>
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(1, totalPages)}"
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:text="${i}"
+                                   th:href="@{/admin/refresh-tokens(page=${i}, size=${size}, q=${q}, status=${status})}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/admin/refresh-tokens(page=${currentPage + 1}, size=${size}, q=${q}, status=${status})}">Sau</a>
+                            </li>
+                        </ul>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <p class="text-muted mb-0">
+                                Hiển thị <span th:text="${#lists.size(refreshTokens)}"></span> / <span th:text="${totalItems}"></span> mục
+                            </p>
+                            <div class="d-flex align-items-center">
+                                <label class="me-2 mb-0">Số dòng:</label>
+                                <form th:action="@{/admin/refresh-tokens}" method="get" class="d-inline">
+                                    <input type="hidden" name="page" value="1"/>
+                                    <input type="hidden" name="q" th:value="${q}"/>
+                                    <input type="hidden" name="status" th:value="${status}"/>
+                                    <select name="size" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                                        <option th:each="opt : ${pageSizeOptions}"
+                                                th:value="${opt}"
+                                                th:text="${opt}"
+                                                th:selected="${opt == size}">10</option>
+                                    </select>
+                                </form>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Modal Template -->
+        <div th:each="token : ${refreshTokens}"
+             class="modal fade"
+             th:id="'detailModal' + ${token.refreshId}"
+             tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-info-circle me-2"></i>Chi tiết phiên đăng nhập
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Refresh ID:</dt>
+                            <dd class="col-sm-8"><code th:text="${token.refreshId}">abc123</code></dd>
+
+                            <dt class="col-sm-4">Sign Key:</dt>
+                            <dd class="col-sm-8">
+                                <code class="text-break" th:text="${token.signKey}">key123...</code>
+                            </dd>
+
+                            <dt class="col-sm-4">Thiết bị:</dt>
+                            <dd class="col-sm-8" th:text="${token.deviceName}">iPhone 13</dd>
+
+                            <dt class="col-sm-4">Ngày tạo:</dt>
+                            <dd class="col-sm-8" th:text="${#dates.format(token.createdAt, 'dd/MM/yyyy HH:mm:ss')}">01/01/2024 10:30:00</dd>
+
+                            <dt class="col-sm-4">Ngày hết hạn:</dt>
+                            <dd class="col-sm-8" th:text="${#dates.format(token.expiresAt, 'dd/MM/yyyy HH:mm:ss')}">01/02/2024 10:30:00</dd>
+
+                            <dt class="col-sm-4">Thời gian còn lại:</dt>
+                            <dd class="col-sm-8">
+                                <span th:if="${token.expiresAt.after(#dates.createNow())}"
+                                      class="text-success">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Còn <span th:text="${(token.expiresAt.time - #dates.createNow().time) / (1000 * 60 * 60 * 24)}"></span> ngày
+                                </span>
+                                <span th:unless="${token.expiresAt.after(#dates.createNow())}"
+                                      class="text-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Đã hết hạn
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</th:block>

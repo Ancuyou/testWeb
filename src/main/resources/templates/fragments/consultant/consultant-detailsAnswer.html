@@ -1,0 +1,101 @@
+<section th:fragment="question-details" id="question-details" class="py-5 bg-light">
+    <div class="container">
+        <!-- Back Button -->
+        <div class="mb-3">
+            <a th:href="@{/consultant/questions(highlightQuestion=${question.questionID})}"
+                class="btn btn-outline-secondary">
+                <i class="fas me-2"></i>Bấm vào để trả lời câu hỏi này
+            </a>
+        </div>
+
+        <!-- Question Header -->
+        <div class="mb-4">
+            <h2 class="fw-bold text-dark mb-3" th:text="${question.title}">Tiêu đề câu hỏi</h2>
+            <span class="badge bg-primary">Câu hỏi</span>
+        </div>
+
+        <!-- Question Card -->
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px; font-size: 20px; font-weight: bold;">
+                            <span th:text="${question.user.profile.fullName.substring(0,1).toUpperCase()}">U</span>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-1 fw-semibold" th:text="${question.user.profile.fullName}">Tên người dùng</h5>
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i>
+                            <span th:text="${#temporals.format(question.dateSend, 'dd/MM/yyyy HH:mm')}"></span>
+                        </small>
+                    </div>
+                </div>
+                <!-- Question Content File -->
+                <div th:if="${question.fileAttachment != null and question.fileAttachment != ''}" class="mt-3">
+                    <div th:if="${#strings.toLowerCase(question.fileAttachment).endsWith('.jpg') 
+                                        or #strings.toLowerCase(question.fileAttachment).endsWith('.jpeg')
+                                        or #strings.toLowerCase(question.fileAttachment).endsWith('.png')
+                                        or #strings.toLowerCase(question.fileAttachment).endsWith('.gif')}">
+                        <img th:src="@{${question.fileAttachment}}" alt="Ảnh đính kèm"
+                            style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;">
+                    </div>
+                    <div th:unless="${#strings.toLowerCase(question.fileAttachment).endsWith('.jpg') 
+                                            or #strings.toLowerCase(question.fileAttachment).endsWith('.jpeg')
+                                            or #strings.toLowerCase(question.fileAttachment).endsWith('.png')
+                                            or #strings.toLowerCase(question.fileAttachment).endsWith('.gif')}">
+                        <a th:href="@{${question.fileAttachment}}" target="_blank"
+                            class="btn btn-outline-secondary btn-sm mt-2">
+                            <i class="fas fa-paperclip me-1"></i> Tải tệp đính kèm
+                        </a>
+                    </div>
+                </div>
+                <div class="border-start border-3 border-primary ps-3 py-2">
+                    <p class="mb-0 fs-6" th:text="${question.content}">Nội dung câu hỏi...</p>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-5">
+
+        <!-- Answers Section -->
+        <div class="mb-4">
+            <h4 class="fw-bold d-flex align-items-center">
+                <i class="bi bi-chat-left-text me-2 text-success"></i>
+                Câu trả lời
+                <span class="badge bg-success ms-2" th:text="${#lists.size(answers)}">0</span>
+            </h4>
+        </div>
+
+        <!-- Answers List -->
+        <div th:each="answer, iterStat : ${answers}" class="mb-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                                style="width: 40px; height: 40px; font-size: 16px; font-weight: bold;">
+                                <span>A</span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1 fw-semibold">Câu trả lời #<span th:text="${iterStat.count}">1</span></h6>
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i>
+                                <span th:text="${#temporals.format(answer.dateAnswered, 'dd/MM/yyyy HH:mm')}"></span>
+                            </small>
+                        </div>
+                    </div>
+                    <p class="mb-0 text-dark" th:text="${answer.content}">Nội dung câu trả lời...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(answers)}" class="text-center py-5">
+            <i class="bi bi-chat-left-dots text-muted" style="font-size: 4rem;"></i>
+            <p class="text-muted mt-3 fs-5">Chưa có câu trả lời nào</p>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,144 @@
+<th:block th:replace="~{pages/manager/layout-manager :: layout(~{::field_form_content}, 'fields')}">
+    <th:block th:fragment="field_form_content">
+
+        <div class="container-fluid py-3">
+
+            <!-- Tiêu đề -->
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-plus-circle me-2 text-primary"></i>Thêm lĩnh vực mới
+                </h2>
+                <a th:href="@{/manager/fields}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+
+            <!-- Form -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+
+                            <form th:action="@{/manager/fields/save}" th:object="${field}" method="post">
+
+                                <!-- Tên lĩnh vực -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Tên lĩnh vực <span class="text-danger">*</span></label>
+                                    <input type="text" th:field="*{fieldName}" class="form-control"
+                                           placeholder="Ví dụ: Trí tuệ nhân tạo, An toàn thông tin, Kỹ thuật phần mềm..." required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fieldName')}" th:errors="*{fieldName}"></div>
+                                </div>
+
+                                <!-- Khoa/Ngành liên quan -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Khoa/Ngành liên quan</label>
+
+                                    <div class="card">
+                                        <div class="card-body department-box">
+
+                                            <!-- Ô tìm kiếm -->
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                                                <input type="text" id="searchDepartment" class="form-control" placeholder="Tìm theo tên khoa/ngành...">
+                                            </div>
+
+                                            <!-- Nếu trống -->
+                                            <div th:if="${#lists.isEmpty(departments)}" class="text-center text-muted py-3">
+                                                Không có khoa/ngành nào.
+                                            </div>
+
+                                            <!-- Danh sách -->
+                                            <div th:if="${!#lists.isEmpty(departments)}">
+                                                <!-- Chọn tất cả -->
+                                                <div class="form-check mb-3 border-bottom pb-2">
+                                                    <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleAllDepartments(this)">
+                                                    <label class="form-check-label fw-bold" for="selectAll">Chọn tất cả</label>
+                                                </div>
+
+                                                <div id="departmentList">
+                                                    <div th:each="dept : ${departments}" class="form-check mb-2 department-item">
+                                                        <input class="form-check-input department-checkbox"
+                                                               type="checkbox"
+                                                               th:id="'dept-' + ${dept.departmentID}"
+                                                               name="departmentIds"
+                                                               th:value="${dept.departmentID}"
+                                                               th:checked="${field.departments != null and field.departments.contains(dept)}">
+                                                        <label class="form-check-label" th:for="'dept-' + ${dept.departmentID}">
+                                                            <span th:text="${dept.departmentName}"></span>
+                                                            <small class="text-muted">(<span th:text="${dept.type}"></span>)</small>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="d-flex justify-content-end gap-2 mt-3">
+                                    <a th:href="@{/manager/fields}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i>Hủy
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>Lưu lĩnh vực
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .department-box {
+                height: 350px;               /* ✅ Chiều cao cố định */
+                overflow-y: auto;            /* ✅ Bật thanh cuộn dọc */
+                overflow-x: hidden;
+            }
+
+            .department-box::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .department-box::-webkit-scrollbar-thumb {
+                background-color: rgba(0, 0, 0, 0.2);
+                border-radius: 4px;
+            }
+        </style>
+        <!-- Script: chọn tất cả checkbox -->
+        <script>
+            function toggleAllDepartments(source) {
+                const checkboxes = document.querySelectorAll('.department-checkbox');
+                checkboxes.forEach(cb => cb.checked = source.checked);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const checkboxes = document.querySelectorAll('.department-checkbox');
+                const selectAll = document.getElementById('selectAll');
+
+                if (selectAll && checkboxes.length > 0) {
+                    checkboxes.forEach(cb => cb.addEventListener('change', () => {
+                        selectAll.checked = Array.from(checkboxes).every(c => c.checked);
+                    }));
+                }
+
+                // 🔍 Chức năng tìm kiếm theo tên khoa/ngành
+                const searchInput = document.getElementById('searchDepartment');
+                const departmentItems = document.querySelectorAll('.department-item');
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', function () {
+                        const keyword = this.value.toLowerCase().trim();
+                        departmentItems.forEach(item => {
+                            const text = item.textContent.toLowerCase();
+                            item.style.display = text.includes(keyword) ? '' : 'none';
+                        });
+                    });
+                }
+            });
+        </script>
+
+    </th:block>
+</th:block>

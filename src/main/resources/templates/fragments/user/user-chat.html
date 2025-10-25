@@ -1,0 +1,226 @@
+<!-- templates/fragments/user/user-chat.html -->
+<section th:fragment="user-chat" id="chat-messaging" class="py-4" style="background-color: #CDC4F9;">
+  <div class="container py-4">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card" id="chat3" style="border-radius: 15px;">
+          <div class="card-body">
+            <!-- Chat Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold">Trò chuyện</h2>
+                    <p class="text-muted">Kết nối với tư vấn viên để được hỗ trợ</p>
+                </div>
+            </div>
+
+            <div class="row">
+              <!-- Conversation List -->
+              <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0">
+                <div class="p-3">
+                  <!-- Search Box -->
+                  <div class="input-group rounded mb-3">
+                    <input type="search" class="form-control rounded" placeholder="Tìm kiếm..." aria-label="Search"
+                      aria-describedby="search-addon" />
+                    <span class="input-group-text border-0" id="search-addon">
+                      <i class="fas fa-search"></i>
+                    </span>
+                  </div>
+
+                  <!-- Contact List -->
+                  <div style="position: relative; height: 400px; overflow-y: auto;">
+                    <ul class="list-unstyled mb-0">
+                      <!-- Contact 1 - Active -->
+                      <li class="p-2 border-bottom">
+                        <a href="#!" class="d-flex justify-content-between">
+                          <div class="d-flex flex-row">
+                            <div class="position-relative">
+                              <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
+                                alt="avatar" class="d-flex align-self-center me-3" width="60">
+                              <span class="badge bg-success badge-dot position-absolute bottom-0 end-0"></span>
+                            </div>
+                            <div class="pt-1">
+                              <p class="fw-bold mb-0">Cố vấn học tập</p>
+                              <p class="small text-muted">Tôi sẽ hỗ trợ bạn về các vấn đề học tập</p>
+                            </div>
+                          </div>
+                          <div class="pt-1">
+                            <p class="small text-muted mb-1">12:45</p>
+                            <span class="badge bg-danger rounded-pill float-end">1</span>
+                          </div>
+                        </a>
+                      </li>
+                      
+                      <!-- Contact 2 - Away -->
+                      <li class="p-2 border-bottom">
+                        <a href="#!" class="d-flex justify-content-between">
+                          <div class="d-flex flex-row">
+                            <div class="position-relative">
+                              <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
+                                alt="avatar" class="d-flex align-self-center me-3" width="60">
+                              <span class="badge bg-warning badge-dot position-absolute bottom-0 end-0"></span>
+                            </div>
+                            <div class="pt-1">
+                              <p class="fw-bold mb-0">Tư vấn tài chính</p>
+                              <p class="small text-muted">Thông tin về học phí và học bổng...</p>
+                            </div>
+                          </div>
+                          <div class="pt-1">
+                            <p class="small text-muted mb-1">Hôm qua</p>
+                          </div>
+                        </a>
+                      </li>
+                      
+                      <!-- Contact 3 - Online -->
+                      <li class="p-2 border-bottom">
+                        <a href="#!" class="d-flex justify-content-between">
+                          <div class="d-flex flex-row">
+                            <div class="position-relative">
+                              <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp"
+                                alt="avatar" class="d-flex align-self-center me-3" width="60">
+                              <span class="badge bg-success badge-dot position-absolute bottom-0 end-0"></span>
+                            </div>
+                            <div class="pt-1">
+                              <p class="fw-bold mb-0">Hỗ trợ kỹ thuật</p>
+                              <p class="small text-muted">Hỗ trợ về tài khoản và các vấn đề kỹ thuật</p>
+                            </div>
+                          </div>
+                          <div class="pt-1">
+                            <p class="small text-muted mb-1">03/10</p>
+                          </div>
+                        </a>
+                      </li>
+                      
+                      <!-- Contact 4 - Offline -->
+                      <li class="p-2">
+                        <a href="#!" class="d-flex justify-content-between">
+                          <div class="d-flex flex-row">
+                            <div class="position-relative">
+                              <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava4-bg.webp"
+                                alt="avatar" class="d-flex align-self-center me-3" width="60">
+                              <span class="badge bg-danger badge-dot position-absolute bottom-0 end-0"></span>
+                            </div>
+                            <div class="pt-1">
+                              <p class="fw-bold mb-0">Tư vấn thực tập</p>
+                              <p class="small text-muted">Thông tin về cơ hội thực tập và việc làm</p>
+                            </div>
+                          </div>
+                          <div class="pt-1">
+                            <p class="small text-muted mb-1">01/10</p>
+                          </div>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chat Window -->
+              <div class="col-md-6 col-lg-7 col-xl-8">
+                <!-- Chat Messages -->
+                <div class="pt-3 pe-3" style="position: relative; height: 400px; overflow-y: auto;">
+                  <!-- Time Divider -->
+                  <div class="text-center mb-4">
+                    <span class="badge bg-light text-dark px-3 py-2">Hôm nay, 12:30</span>
+                  </div>
+
+                  <!-- Sent Message -->
+                  <div class="d-flex flex-row justify-content-end mb-4">
+                    <div>
+                      <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">
+                        Chào thầy/cô, em có một số thắc mắc về thủ tục đăng ký học phần cho học kỳ mới. Em không biết có cần phải hoàn thành các môn tiên quyết trước không?
+                      </p>
+                      <p class="small me-3 mb-3 rounded-3 text-muted">12:30</p>
+                    </div>
+                    <img src="https://via.placeholder.com/45" class="rounded-circle"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                  </div>
+
+                  <!-- Received Message -->
+                  <div class="d-flex flex-row justify-content-start mb-4">
+                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                    <div>
+                      <p class="small p-2 ms-3 mb-1 rounded-3 bg-body-tertiary">
+                        Chào em, đối với đăng ký học phần, em cần kiểm tra điều kiện tiên quyết cho từng môn học cụ thể. Thông tin này được hiển thị trong phần mô tả học phần trên cổng thông tin.
+                      </p>
+                      <p class="small ms-3 mb-3 rounded-3 text-muted float-end">12:35</p>
+                    </div>
+                  </div>
+
+                  <!-- Received Message -->
+                  <div class="d-flex flex-row justify-content-start mb-4">
+                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                    <div>
+                      <p class="small p-2 ms-3 mb-1 rounded-3 bg-body-tertiary">
+                        Để xem chi tiết, em có thể vào mục "Đăng ký học phần" trên cổng sinh viên, sau đó chọn "Xem điều kiện tiên quyết" cho các môn học.
+                      </p>
+                      <p class="small ms-3 mb-3 rounded-3 text-muted float-end">12:36</p>
+                    </div>
+                  </div>
+
+                  <!-- Sent Message -->
+                  <div class="d-flex flex-row justify-content-end mb-4">
+                    <div>
+                      <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">
+                        Em đã hiểu. Vậy thời gian đăng ký cho học kỳ tới bắt đầu từ khi nào ạ?
+                      </p>
+                      <p class="small me-3 mb-3 rounded-3 text-muted">12:40</p>
+                    </div>
+                    <img src="https://via.placeholder.com/45" class="rounded-circle"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                  </div>
+
+                  <!-- Received Message -->
+                  <div class="d-flex flex-row justify-content-start mb-4">
+                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava1-bg.webp"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                    <div>
+                      <p class="small p-2 ms-3 mb-1 rounded-3 bg-body-tertiary">
+                        Thời gian đăng ký học phần cho học kỳ tới sẽ bắt đầu từ ngày 15/10/2025 và kết thúc vào ngày 25/10/2025. Nhà trường sẽ gửi email thông báo chi tiết cho tất cả sinh viên trong tuần này.
+                      </p>
+                      <p class="small ms-3 mb-3 rounded-3 text-muted float-end">12:43</p>
+                    </div>
+                  </div>
+
+                  <!-- Sent Message -->
+                  <div class="d-flex flex-row justify-content-end mb-4">
+                    <div>
+                      <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">
+                        Cảm ơn thầy/cô đã giải đáp chi tiết. Em sẽ chuẩn bị sẵn sàng cho đợt đăng ký tới.
+                      </p>
+                      <p class="small me-3 mb-3 rounded-3 text-muted">12:45</p>
+                    </div>
+                    <img src="https://via.placeholder.com/45" class="rounded-circle"
+                      alt="avatar 1" style="width: 45px; height: 100%;">
+                  </div>
+                </div>
+
+                <!-- Message Input -->
+                <div class="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+                  <img src="https://via.placeholder.com/40" class="rounded-circle" 
+                    alt="avatar 3" style="width: 40px; height: 40px;">
+                  <input type="text" class="form-control form-control-lg ms-3" id="messageInput"
+                    placeholder="Nhập tin nhắn...">
+                  <a class="ms-1 text-muted" href="#!"><i class="fas fa-paperclip"></i></a>
+                  <a class="ms-3 text-muted" href="#!"><i class="fas fa-smile"></i></a>
+                  <a class="ms-3 btn btn-primary" href="#!"><i class="fas fa-paper-plane"></i></a>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CSS for Badge Dots -->
+<style>
+.badge-dot {
+    width: 12px;
+    height: 12px;
+    border: 2px solid white;
+}
+</style>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/head :: head('QAUTE - Lịch sử câu hỏi')}"></th:block>
+    <style>
+        .question-card.highlight {
+            border: 2px solid #ffc107 !important;
+            background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%) !important;
+            box-shadow: 0 8px 24px rgba(255, 193, 7, 0.3) !important;
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+
+        .question-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .question-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+        }
+    </style>
+</head>
+
+<body>
+<th:block th:replace="~{fragments/user/user-navbar :: user-navbar}"></th:block>
+
+<main style="padding-top: 80px; background-color: #f8f9fa; min-height: 100vh;">
+    <div class="container py-5">
+        <!-- Header -->
+        <div class="card border-0 shadow-sm mb-4 text-center p-4 rounded-3"
+             style="background: linear-gradient(135deg, #ffd89b 0%, #ff9a56 100%); color: white;">
+            <h1 class="fw-bold display-5">
+                <i class="fas fa-history me-3"></i>
+                Lịch sử câu hỏi của bạn
+            </h1>
+            <p class="lead mb-0">
+                Quản lý và theo dõi tất cả câu hỏi bạn đã đặt
+            </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-question-circle fa-2x text-primary mb-2"></i>
+                        <h3 class="fw-bold mb-0" th:text="${questionsAsked}">0</h3>
+                        <small class="text-muted">Câu hỏi đã đặt</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-comment-dots fa-2x text-success mb-2"></i>
+                        <h3 class="fw-bold mb-0" th:text="${answersReceived}">0</h3>
+                        <small class="text-muted">Câu trả lời nhận được</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions List -->
+        <div th:each="question : ${userQuestions}"
+             th:id="'question-' + ${question.questionID}"
+             class="card border-0 shadow-sm mb-4 question-card"
+             th:classappend="${highlightQuestionId != null and highlightQuestionId == question.questionID} ? 'highlight' : ''">
+
+            <div class="card-header bg-white py-3 border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width: 45px; height: 45px;">
+                            <i class="fas fa-question-circle text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0" th:text="${question.title}">Tiêu đề</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                <span th:text="${#temporals.format(question.dateSend, 'dd/MM/yyyy HH:mm')}"></span>
+                            </small>
+                        </div>
+                    </div>
+                    <span th:if="${!#lists.isEmpty(question.answers)}"
+                          class="badge bg-success">
+                        <i class="fas fa-check me-1"></i>Đã trả lời
+                    </span>
+                    <span th:if="${#lists.isEmpty(question.answers)}"
+                          class="badge bg-warning text-dark">
+                        <i class="fas fa-clock me-1"></i>Chờ phản hồi
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <p class="mb-3" th:text="${question.content}">Nội dung</p>
+
+                <div class="mb-3">
+                    <span class="badge bg-primary" th:text="${question.department?.departmentName}">Khoa</span>
+                    <span th:if="${question.field != null}"
+                          class="badge bg-secondary"
+                          th:text="${question.field?.fieldName}">Ngành</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center text-muted small">
+                    <span>
+                        <i class="fas fa-eye me-1"></i>
+                        <span th:text="${question.views}">0</span> lượt xem
+                    </span>
+                    <span>
+                        <i class="fas fa-comment me-1"></i>
+                        <span th:text="${#lists.size(question.answers)}">0</span> câu trả lời
+                    </span>
+                </div>
+
+                <!-- Answers -->
+                <div th:if="${!#lists.isEmpty(question.answers)}" class="mt-4">
+                    <h6 class="fw-bold mb-3">Câu trả lời:</h6>
+                    <div th:each="answer : ${question.answers}" class="bg-light p-3 rounded-3 mb-2">
+                        <div class="d-flex align-items-start">
+                            <img th:src="@{${answer.consultant.profile.avatar}}"
+                                 class="rounded-circle me-3"
+                                 style="width: 40px; height: 40px;"
+                                 alt="Consultant">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        <strong th:text="${answer.consultant.profile.fullName}">Tư vấn viên</strong>
+                                        <span class="badge bg-success ms-2">Tư vấn viên</span>
+                                    </div>
+                                    <small class="text-muted"
+                                           th:text="${#temporals.format(answer.dateAnswered, 'dd/MM/yyyy HH:mm')}"></small>
+                                </div>
+                                <p class="mb-0" th:text="${answer.content}">Câu trả lời</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${userQuestions == null or #lists.isEmpty(userQuestions)}"
+             class="card border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Bạn chưa đặt câu hỏi nào</p>
+                <a th:href="@{/user/questions}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Đặt câu hỏi ngay
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
+<script>
+    // Scroll to highlighted question
+    document.addEventListener('DOMContentLoaded', function() {
+        const highlightedCard = document.querySelector('.question-card.highlight');
+        if (highlightedCard) {
+            setTimeout(() => {
+                highlightedCard.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300);
+        }
+    });
+</script>
+</body>
+</html>

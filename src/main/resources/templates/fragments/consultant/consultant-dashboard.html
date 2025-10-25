@@ -1,0 +1,137 @@
+<section th:fragment="consultant-dashboard" id="dashboard" class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <div>
+                <h2 class="fw-bold">Dashboard</h2>
+                <p class="text-muted">Tổng quan hoạt động tư vấn của bạn</p>
+            </div>
+
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 me-3">
+                                <i class="fas fa-question-circle text-primary"></i>
+                            </div>
+                            <h6 class="card-title mb-0 fw-bold">Tổng câu hỏi đã trả lời</h6>
+                        </div>
+                        <h3 class="fw-bold mb-1"
+                            th:text="${totalQuestionsAnswered != null ? totalQuestionsAnswered : 0}"></h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-3 me-3">
+                                <i class="fas fa-reply text-success"></i>
+                            </div>
+                            <h6 class="card-title mb-0 fw-bold">Tỷ lệ phản hồi</h6>
+                        </div>
+                        <h3 class="fw-bold mb-1" th:text="${responseRate != null ? responseRate + '%' : '0%'}"></h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-3 me-3">
+                                <i class="fas fa-clock text-warning"></i>
+                            </div>
+                            <h6 class="card-title mb-0 fw-bold">Thời gian phản hồi</h6>
+                        </div>
+                        <h3 class="fw-bold mb-1"
+                            th:text="${avgResponseTime != null ? avgResponseTime + ' phút' : '0 phút'}"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 p-3 rounded-3 me-3">
+                                <i class="fas fa-users text-info"></i>
+                            </div>
+                            <h6 class="card-title mb-0 fw-bold">Số user đã trả lời</h6>
+                        </div>
+                        <h3 class="fw-bold mb-1" id="totalUsersAnswered"
+                            th:text="${totalUsersAnswered != null ? totalUsersAnswered : 0}"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title fw-bold">Câu hỏi theo thời gian</h5>
+                            <div class="btn-group" role="group" id="timeButtons">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    data-period="day">Ngày</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary active"
+                                    data-period="week">Tuần</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    data-period="month">Tháng</button>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 250px; position: relative;">
+                            <canvas id="timeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold mb-4">Phân loại câu hỏi đã trả lời theo lĩnh vực</h5>
+                        <div class="chart-container" style="height: 300px; position: relative;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="card-title fw-bold">Hoạt động gần đây</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">Xem tất cả <i
+                            class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>STT</th>
+                                <th>Câu hỏi</th>
+                                <th>Thời gian trả lời</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="activity, iterStat : ${recentActivities}"
+                                th:if="${recentActivities != null and !recentActivities.isEmpty()}">
+                                <td th:text="${iterStat.index + 1}"></td>
+                                <td th:text="${activity.question != null ? activity.question.title : 'N/A'}"></td>
+                                <td th:text="${#temporals.format(activity.dateAnswered, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td><span class="badge bg-success">Đã trả lời</span></td>
+                            </tr>
+                            <tr th:if="${recentActivities == null or recentActivities.isEmpty()}">
+                                <td colspan="3" class="text-center text-muted">Không có hoạt động gần đây</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+</section>

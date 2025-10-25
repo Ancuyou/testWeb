@@ -1,0 +1,6 @@
+<!-- templates/fragments/consultant-navbar.html -->
+<th:block th:fragment="consultant-navbar" th:replace="~{fragments/userDropDown :: consultantHeader(
+    ${account?.profile?.fullName},
+    ${account?.profile?.avatar},
+    true
+)}"></th:block>

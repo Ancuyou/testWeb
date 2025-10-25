@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<div th:fragment="toast">
+    <style>
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .custom-toast {
+            min-width: 320px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .custom-toast.success {
+            border-left-color: #28a745;
+        }
+
+        .custom-toast.error {
+            border-left-color: #dc3545;
+        }
+
+        .custom-toast.warning {
+            border-left-color: #ffc107;
+        }
+
+        .custom-toast.info {
+            border-left-color: #17a2b8;
+        }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .toast-icon.success { background-color: #d4edda; }
+        .toast-icon.error { background-color: #f8d7da; }
+        .toast-icon.warning { background-color: #fff3cd; }
+        .toast-icon.info { background-color: #d1ecf1; }
+
+        .toast-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 3;
+        }
+    </style>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer">
+        <!-- Toast thành công -->
+        <div class="toast custom-toast success align-items-center border-0"
+             id="successToast"
+             role="alert"
+             aria-live="assertive"
+             aria-atomic="true"
+             th:if="${success != null}">
+            <div class="d-flex p-3 bg-white">
+                <div class="toast-icon success">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #28a745;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div class="toast-body">
+                    <strong class="text-success">Thành công!</strong>
+                    <p class="mb-0 text-muted small" th:text="${successMessage ?: 'Thao tác đã được thực hiện thành công!'}">
+                        Thao tác đã được thực hiện thành công!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast lỗi -->
+        <div class="toast custom-toast error align-items-center border-0"
+             id="errorToast"
+             role="alert"
+             aria-live="assertive"
+             aria-atomic="true"
+             th:if="${error != null}">
+            <div class="d-flex p-3 bg-white">
+                <div class="toast-icon error">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #dc3545;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                <div class="toast-body">
+                    <strong class="text-danger">Có lỗi xảy ra!</strong>
+                    <p class="mb-0 text-muted small" th:text="${errorMessage ?: 'Đã có lỗi xảy ra. Vui lòng thử lại!'}">
+                        Đã có lỗi xảy ra. Vui lòng thử lại!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast cảnh báo -->
+        <div class="toast custom-toast warning align-items-center border-0"
+             id="warningToast"
+             role="alert"
+             aria-live="assertive"
+             aria-atomic="true"
+             th:if="${warning != null}">
+            <div class="d-flex p-3 bg-white">
+                <div class="toast-icon warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #ffc107;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div class="toast-body">
+                    <strong class="text-warning">Cảnh báo!</strong>
+                    <p class="mb-0 text-muted small" th:text="${warningMessage}">
+                        Cảnh báo!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast thông tin -->
+        <div class="toast custom-toast info align-items-center border-0"
+             id="infoToast"
+             role="alert"
+             aria-live="assertive"
+             aria-atomic="true"
+             th:if="${info != null}">
+            <div class="d-flex p-3 bg-white">
+                <div class="toast-icon info">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #17a2b8;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="toast-body">
+                    <strong class="text-info">Thông tin!</strong>
+                    <p class="mb-0 text-muted small" th:text="${infoMessage}">
+                        Thông tin!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Script -->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hàm hiển thị toast
+            function showToastById(toastId, delay) {
+                var toastElement = document.getElementById(toastId);
+                if (toastElement) {
+                    var toast = new bootstrap.Toast(toastElement, {
+                        autohide: true,
+                        delay: delay || 4000
+                    });
+                    toast.show();
+
+                    // Xóa toast sau khi ẩn
+                    toastElement.addEventListener('hidden.bs.toast', function() {
+                        toastElement.remove();
+                    });
+                }
+            }
+
+            // Hiển thị các toast nếu có
+            showToastById('successToast', 4000);
+            showToastById('errorToast', 5000);
+            showToastById('warningToast', 5000);
+            showToastById('infoToast', 4000);
+        });
+
+        // Hàm global để hiển thị toast động (dùng cho AJAX)
+        window.showToast = function(type, title, message, delay) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const icons = {
+                success: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #28a745;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>',
+                error: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #dc3545;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
+                warning: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #ffc107;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+                info: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="stroke: #17a2b8;"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+            };
+
+            const colors = {
+                success: 'text-success',
+                error: 'text-danger',
+                warning: 'text-warning',
+                info: 'text-info'
+            };
+
+            const toastHtml = `
+                <div class="toast custom-toast ${type} align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex p-3 bg-white">
+                        <div class="toast-icon ${type}">
+                            ${icons[type]}
+                        </div>
+                        <div class="toast-body">
+                            <strong class="${colors[type]}">${title}</strong>
+                            <p class="mb-0 text-muted small">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastElement = container.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: delay || 4000
+            });
+
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        };
+    </script>
+</div>
+
+</body>
+</html>

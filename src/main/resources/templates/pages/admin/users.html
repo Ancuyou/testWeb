@@ -1,0 +1,137 @@
+<th:block th:replace="~{pages/admin/layout :: layout(~{::users_content}, 'users')}">
+    <th:block th:fragment="users_content">
+
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2"><i class="fas fa-users me-2"></i>Quản lý người dùng</h1>
+            <a class="btn btn-primary" th:href="@{/admin/user/add}">
+                <i class="fas fa-plus me-2"></i>Thêm người dùng
+            </a>
+        </div>
+
+        <!-- Search -->
+        <form th:action="@{/admin/users}" method="get" class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" name="q" class="form-control" th:value="${q}" placeholder="Tìm theo tên, email, phone..."/>
+            </div>
+            <div class="col-md-3">
+                <select name="roleName" class="form-select">
+                    <option th:each="r : ${userRoles}"
+                            th:value="${r.name()}"
+                            th:text="${r.name()}"
+                            th:selected="${selectedRole == r.name()}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-2"></i>Tìm kiếm</button>
+            </div>
+        </form>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Mã sinh viên</th>
+                            <th>Đối tượng</th>
+                            <th>Role</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="a : ${accounts}">
+                            <td th:text="${a.accountID}"></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img th:src="@{${a.profile?.avatar != null && !#strings.isEmpty(a.profile.avatar) ? a.profile.avatar : '/images/default_avatar.png'}}"
+                                         class="rounded-circle me-2" width="32" height="32" alt="Avatar"/>
+                                    <span th:text="${a.profile?.fullName}">Nguyễn Văn A</span>
+                                </div>
+                            </td>
+                            <td th:text="${a.email}"></td>
+                            <td th:text="${a.profile?.user != null ? a.profile.user.studentCode : 'N/A'}"></td>
+                            <td th:text="${a.profile?.user != null ? a.profile.user.roleName.name() : 'N/A'}"></td>
+                            <td>
+                            <span class="badge"
+                                  th:classappend="${a.role.name()=='Admin'}? 'bg-danger' :
+                                                  (${a.role.name()=='Manager'}? 'bg-warning' :
+                                                  (${a.role.name()=='Consultant'}? 'bg-success' : 'bg-primary'))"
+                                  th:text="${a.role}">
+                            </span>
+                            </td>
+                            <td th:text="${a.createdDate != null ? #dates.format(a.createdDate, 'dd/MM/yyyy') : 'N/A'}"></td>
+                            <td class="text-nowrap">
+                                <a class="btn btn-sm btn-warning"
+                                   th:href="@{/admin/user/edit/{id}(id=${a.accountID})}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form th:action="@{/admin/account/delete/{id}(id=${a.accountID})}"
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa người dùng này?');">
+                                    <input type="hidden" name="_method" value="delete"/>
+                                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(accounts)}">
+                            <td colspan="8" class="text-center text-muted py-4">Không có dữ liệu</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav th:if="${totalPages > 1}">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${currentPage - 1}, size=${size}, q=${q}, roleName=${selectedRole})}">
+                                Trước
+                            </a>
+                        </li>
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(1, totalPages)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:text="${i}"
+                               th:href="@{/admin/users(page=${i}, size=${size}, q=${q}, roleName=${selectedRole})}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${currentPage + 1}, size=${size}, q=${q}, roleName=${selectedRole})}">
+                                Sau
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <p class="text-muted mb-0">
+                            Hiển thị <span th:text="${#lists.size(accounts)}"></span> / <span th:text="${totalItems}"></span> người dùng
+                        </p>
+                        <div class="d-flex align-items-center">
+                            <label class="me-2 mb-0">Số dòng:</label>
+                            <form th:action="@{/admin/users}" method="get" class="d-inline">
+                                <input type="hidden" name="page" value="1"/>
+                                <input type="hidden" name="q" th:value="${q}"/>
+                                <input type="hidden" name="roleName" th:value="${selectedRole}"/>
+                                <select name="size" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                                    <option th:each="opt : ${pageSizeOptions}"
+                                            th:value="${opt}"
+                                            th:text="${opt}"
+                                            th:selected="${opt == size}">
+                                    </option>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+    </th:block>
+</th:block>

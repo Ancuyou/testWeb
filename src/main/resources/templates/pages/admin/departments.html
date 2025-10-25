@@ -1,0 +1,112 @@
+<th:block th:replace="~{pages/admin/layout :: layout(~{::departments_content}, 'departments')}">
+    <th:block th:fragment="departments_content">
+        <div id="departments" class="section-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2"><i class="fas fa-building me-2"></i>Quản lý Khoa/Ngành</h1>
+                <a class="btn btn-primary" th:href="@{/admin/department/insert}">
+                    <i class="fas fa-plus me-2"></i>Thêm Khoa/Ngành
+                </a>
+            </div>
+
+            <!-- Search -->
+            <form th:action="@{/admin/departments}" method="get" class="row mb-3">
+                <div class="col-md-9">
+                    <input type="text" name="q" class="form-control" th:value="${q}" placeholder="Tìm theo tên Khoa/Ngành...">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+            </form>
+
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên Khoa/Ngành</th>
+                                <th>Loại</th>
+                                <th>Thuộc Khoa</th>
+                                <th>Mô tả</th>
+                                <th class="text-nowrap">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="d : ${departments}">
+                                <td th:text="${d.departmentID}">1</td>
+                                <td><strong th:text="${d.departmentName}">CNTT</strong></td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${d.type.name() == 'Faculty'} ? 'bg-primary' : 'bg-secondary'"
+                                          th:text="${d.type}">Faculty</span>
+                                </td>
+                                <td th:text="${d.parent != null ? d.parent.departmentName : '-'}">-</td>
+                                <td th:text="${d.description != null ? d.description : ''}">Mô tả</td>
+                                <td class="text-nowrap">
+                                    <a class="btn btn-sm btn-warning" th:href="@{/admin/department/edit/{id}(id=${d.departmentID})}" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form th:action="@{/admin/department/delete/{id}(id=${d.departmentID})}"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Xoá Khoa/Ngành này?');">
+                                        <input type="hidden" name="_method" value="delete"/>
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Xoá">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(departments)}">
+                                <td colspan="6" class="text-center text-muted py-4">Không có dữ liệu</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav th:if="${totalPages > 1}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/admin/departments(page=${currentPage - 1}, size=${size}, q=${q})}">Trước</a>
+                            </li>
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(1, totalPages)}"
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:text="${i}"
+                                   th:href="@{/admin/departments(page=${i}, size=${size}, q=${q})}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/admin/departments(page=${currentPage + 1}, size=${size}, q=${q})}">Sau</a>
+                            </li>
+                        </ul>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <p class="text-muted mb-0">
+                                Hiển thị <span th:text="${#lists.size(departments)}"></span> / <span th:text="${totalItems}"></span> mục
+                            </p>
+                            <div class="d-flex align-items-center">
+                                <label class="me-2 mb-0">Số dòng:</label>
+                                <form th:action="@{/admin/departments}" method="get" class="d-inline">
+                                    <input type="hidden" name="page" value="1"/>
+                                    <input type="hidden" name="q" th:value="${q}"/>
+                                    <select name="size" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                                        <option th:each="opt : ${pageSizeOptions}"
+                                                th:value="${opt}"
+                                                th:text="${opt}"
+                                                th:selected="${opt == size}">10</option>
+                                    </select>
+                                </form>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</th:block>

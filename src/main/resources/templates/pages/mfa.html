@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác thực bổ sung - QAUTE</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="mb-3 text-center">Xác thực bổ sung</h5>
+
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}">Có lỗi</div>
+                    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+                    <!-- B1: OTP Email (6 số) -->
+                    <form th:if="${!emailForm}" th:action="@{/auth/mfa/verify-email}" method="post" class="mb-3">
+                        <label class="form-label">Nhập OTP (6 số) gửi tới email</label>
+                        <input type="text" name="code" class="form-control mb-3" placeholder="Ví dụ: 123456" pattern="\\d{6}" required>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary w-100">Xác nhận OTP</button>
+                            <button class="btn btn-outline-secondary" formaction="#" formmethod="post"
+                                    th:formaction="@{/auth/mfa/resend}">Gửi lại OTP</button>
+                        </div>
+                    </form>
+
+                    <!-- B2: Mã định danh/PIN (6 số) – chỉ hiện sau khi qua OTP -->
+                    <form th:if="${emailForm}" th:action="@{/auth/mfa/verify-pin}" method="post">
+                        <label class="form-label">Nhập Mã định danh 6 số (PIN)</label>
+                        <input type="password" name="pin" class="form-control mb-3" placeholder="******" pattern="\\d{6}" required>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-primary w-100">Hoàn tất đăng nhập</button>
+                    </form>
+
+                    <hr>
+                    <div class="text-center">
+                        <a class="small" th:href="@{/auth/login}">Quay lại đăng nhập</a>
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted small mt-3">
+                * OTP hết hạn sau 3 phút. Nếu không nhận được, hãy thử “Gửi lại OTP”.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

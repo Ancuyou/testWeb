@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<!-- include head fragment, truyền title -->
+<th:block th:replace="~{fragments/head :: head('QAUTE - Hồ sơ Tư vấn viên')}"></th:block>
+<body>
+<!-- Navigation - Using consultant-navbar fragment -->
+<th:block th:replace="~{fragments/consultant/consultant-navbar :: consultant-navbar}"></th:block>
+
+<!-- Main Content -->
+<main style="padding-top: 70px;">
+    <!-- Profile Content -->
+    <div class="container">
+        <th:block th:replace="~{fragments/consultant/consultant-profile :: consultant-profile}"></th:block>
+    </div>
+</main>
+
+<!-- Footer -->
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+</body>
+</html>

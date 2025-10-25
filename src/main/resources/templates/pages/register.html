@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - QAUTE</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .register-container {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            min-height: 100vh;
+        }
+        .register-card {
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: none;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+        }
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            text-align: center;
+            border-radius: 8px;
+            padding: .375rem .75rem;
+        }
+    </style>
+</head>
+<body>
+<div class="register-container d-flex align-items-center justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="register-card card">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <div class="brand-logo text-primary fw-bold fs-3">
+                                <i class="fas fa-graduation-cap me-2"></i>QAUTE
+                            </div>
+                            <p class="text-muted mt-2">Tạo tài khoản mới</p>
+                        </div>
+
+                        <!-- Form đăng ký -->
+                        <form th:if="${(showOtpForm==null)}"
+                              th:action="@{/auth/register}" method="post" id="registerForm">
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label fw-semibold">
+                                    <i class="fas fa-user me-2 text-primary"></i>Username
+                                </label>
+                                <input type="text" class="form-control" id="username"
+                                       name="username" placeholder="Nhập username của bạn" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-semibold">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>Email
+                                </label>
+                                <input type="email" class="form-control" id="email"
+                                       name="email" placeholder="Nhập email của bạn" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label fw-semibold">
+                                    <i class="fas fa-lock me-2 text-primary"></i>Mật khẩu
+                                </label>
+                                <input type="password" class="form-control" id="password"
+                                       name="password" placeholder="Nhập mật khẩu của bạn" required>
+                            </div>
+
+                            <!-- Hiện lỗi -->
+                            <div th:if="${error}" class="alert alert-danger">
+                                <span th:text="${error}"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-custom w-100">
+                                <i class="fas fa-user-plus me-2"></i>Đăng ký
+                            </button>
+                        </form>
+
+                        <!-- Form OTP -->
+                        <form th:if="${showOtpForm}"
+                              th:action="@{/auth/verifyRegisterOtp}" method="post" id="otpForm">
+                            <input type="hidden" name="email" th:value="${email}">
+                            <input type="hidden" name="username" th:value="${username}">
+                            <input type="hidden" name="password" th:value="${password}">
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label fw-semibold">Nhập mã OTP</label>
+                                <p class="text-muted small">Mã xác thực đã được gửi đến
+                                    <strong th:text="${email}"></strong>
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" name="otp1" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" name="otp2" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" name="otp3" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" name="otp4" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" name="otp5" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1 text-center" name="otp6" required>
+                                </div>
+                            </div>
+
+                            <!-- Countdown -->
+                            <div class="text-center mb-2">
+                                <small class="text-muted">
+                                    Mã OTP sẽ hết hạn sau <span id="countdown">180</span> giây
+                                </small>
+                            </div>
+
+                            <div th:if="${error}" class="alert alert-danger">
+                                <span th:text="${error}"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-custom w-100 mt-3" id="otpSubmitBtn">
+                                Xác nhận OTP
+                            </button>
+
+                            <button type="submit"
+                                    class="btn btn-link w-100 mt-2"
+                                    id="resendBtn"
+                                    th:formaction="@{/auth/register/resendOtp}"
+                                    formmethod="post"
+                                    formnovalidate
+                            disabled>
+                            Gửi lại mã OTP
+                            </button>
+
+                            <div class="alert alert-warning mt-2" id="otpExpiredMsg" style="display: none;">
+                                OTP đã hết hạn, vui lòng gửi lại mã.
+                            </div>
+                        </form>
+
+                        <!-- Quay lại login -->
+                        <div class="text-center mt-4">
+                            <a th:href="@{/auth/login}" class="text-primary fw-semibold">
+                                <i class="fas fa-arrow-left me-1"></i>Quay lại đăng nhập
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ JS Validate + OTP Auto Focus -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        /* ===========================
+           1) VALIDATE REGISTER FORM
+           =========================== */
+        const registerForm = document.getElementById("registerForm");
+        if (registerForm) {
+            const usernameInput = document.getElementById("username");
+            const passwordInput = document.getElementById("password");
+
+            const usernameError = document.createElement("div");
+            usernameError.className = "text-danger small mt-1";
+            usernameInput.insertAdjacentElement("afterend", usernameError);
+
+            const passwordError = document.createElement("div");
+            passwordError.className = "text-danger small mt-1";
+            passwordInput.insertAdjacentElement("afterend", passwordError);
+
+            registerForm.addEventListener("submit", function (e) {
+                let valid = true;
+                usernameError.textContent = "";
+                passwordError.textContent = "";
+
+                if (usernameInput.value.trim().length < 6) {
+                    usernameError.textContent = "Username phải có ít nhất 6 ký tự.";
+                    valid = false;
+                }
+
+                const pwd = passwordInput.value;
+                // ≥8 ký tự, có hoa, thường, số, ký tự đặc biệt
+                const regex =
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+                if (!regex.test(pwd)) {
+                    passwordError.textContent =
+                        "Mật khẩu phải ≥ 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.";
+                    valid = false;
+                }
+
+                if (!valid) e.preventDefault();
+            });
+        }
+
+        /* ===========================
+           2) OTP FORM + COUNTDOWN
+           =========================== */
+        const otpForm       = document.getElementById("otpForm");
+        const otpInputs     = document.querySelectorAll(".otp-input");
+        const otpSubmitBtn  = document.getElementById("otpSubmitBtn");
+        const resendBtn     = document.getElementById("resendBtn");
+        const countdownEl   = document.getElementById("countdown");
+        const expiredMsg    = document.getElementById("otpExpiredMsg");
+
+        // Các hằng số thời gian
+        const OTP_TTL_SEC      = 180; // OTP hết hạn sau 180s
+        const RESEND_LOCK_SEC  = 30;  // Khoá nút resend 30s
+
+        // Khóa sessionStorage để giữ đồng hồ khi reload trang
+        const SS_KEY_OTP_START     = "qaute_reg_otp_start";
+        const SS_KEY_RESEND_START  = "qaute_reg_resend_start";
+
+        // Utilities
+        function nowMs() { return Date.now(); }
+
+        function startCountdown(totalSec, onTick, onEnd) {
+            let secLeft = totalSec;
+            onTick(secLeft);
+            const timer = setInterval(() => {
+                secLeft--;
+                onTick(Math.max(secLeft, 0));
+                if (secLeft <= 0) {
+                    clearInterval(timer);
+                    onEnd && onEnd();
+                }
+            }, 1000);
+            return timer;
+        }
+
+        // Chỉ cho nhập số + auto move + backspace lùi
+        if (otpInputs.length) {
+            otpInputs.forEach((input, idx, arr) => {
+                input.addEventListener("input", () => {
+                    // Chỉ giữ số
+                    input.value = input.value.replace(/\D/g, "");
+                    if (input.value.length === 1 && idx < arr.length - 1) {
+                        arr[idx + 1].focus();
+                    }
+                });
+
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Backspace" && !input.value && idx > 0) {
+                        arr[idx - 1].focus();
+                    }
+                });
+            });
+
+            // Paste trực tiếp 6 số
+            otpInputs[0].addEventListener("paste", (e) => {
+                const text = (e.clipboardData || window.clipboardData).getData("text");
+                if (/^\d{6}$/.test(text)) {
+                    e.preventDefault();
+                    for (let i = 0; i < 6; i++) {
+                        otpInputs[i].value = text[i];
+                    }
+                    otpInputs[5].focus();
+                }
+            });
+        }
+
+        // Đếm ngược OTP 180s
+        function initOtpCountdown() {
+            if (!otpForm || !countdownEl) return;
+
+            // Nếu có thời điểm bắt đầu trong sessionStorage thì tiếp tục
+            const stored = sessionStorage.getItem(SS_KEY_OTP_START);
+            let startTime = stored ? parseInt(stored, 10) : null;
+            const now = nowMs();
+
+            // Nếu không có (hoặc lưu sai), set mới
+            if (!startTime || isNaN(startTime) || now - startTime >= OTP_TTL_SEC * 1000) {
+                startTime = now;
+                sessionStorage.setItem(SS_KEY_OTP_START, String(startTime));
+            }
+
+            // Tính thời gian còn lại
+            const elapsed = Math.floor((now - startTime) / 1000);
+            let remain = OTP_TTL_SEC - elapsed;
+            if (remain < 0) remain = 0;
+
+            // Cấu hình nút
+            if (expiredMsg)    expiredMsg.style.display = "none";
+            if (otpSubmitBtn)  otpSubmitBtn.disabled = remain <= 0;
+
+            startCountdown(
+                remain,
+                (sec) => {
+                    countdownEl.textContent = sec;
+                },
+                () => {
+                    countdownEl.textContent = "0";
+                    if (otpSubmitBtn) otpSubmitBtn.disabled = true;
+                    if (expiredMsg)    expiredMsg.style.display = "block";
+                    if (resendBtn)     resendBtn.disabled = false;
+                }
+            );
+        }
+
+        // Khoá nút resend 30s
+        function initResendLock() {
+            if (!resendBtn) return;
+
+            const stored = sessionStorage.getItem(SS_KEY_RESEND_START);
+            const now = nowMs();
+            let startTime = stored ? parseInt(stored, 10) : null;
+
+            // Nếu chưa từng bấm resend thì khoá 30s từ lúc vào trang
+            if (!startTime || isNaN(startTime) || now - startTime >= RESEND_LOCK_SEC * 1000) {
+                startTime = now;
+                sessionStorage.setItem(SS_KEY_RESEND_START, String(startTime));
+            }
+
+            const elapsed = Math.floor((now - startTime) / 1000);
+            let left = RESEND_LOCK_SEC - elapsed;
+
+            if (left <= 0) {
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = "Gửi lại mã OTP";
+                return;
+            }
+
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = `Gửi lại mã OTP <span class="text-muted">(${left}s)</span>`;
+            startCountdown(
+                left,
+                (sec) => {
+                    resendBtn.innerHTML = `Gửi lại mã OTP <span class="text-muted">(${sec}s)</span>`;
+                },
+                () => {
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = "Gửi lại mã OTP";
+                }
+            );
+        }
+
+        // Khi bấm “Gửi lại OTP”: vì là submit sang @{/auth/register},
+        // ta lưu lại mốc thời gian để trang load lại vẫn khoá 30s,
+        // đồng thời reset mốc OTP để bắt đầu 180s mới.
+        if (resendBtn) {
+            resendBtn.addEventListener("click", () => {
+                sessionStorage.setItem(SS_KEY_RESEND_START, String(nowMs()));
+                sessionStorage.removeItem(SS_KEY_OTP_START); // force OTP 180s mới sau reload
+            });
+        }
+
+        // Khởi chạy khi có form OTP
+        if (otpForm) {
+            // Tự focus vào ô đầu tiên nếu trống
+            if (otpInputs.length && !otpInputs[0].value) {
+                otpInputs[0].focus();
+            }
+            initOtpCountdown();
+            initResendLock();
+        }
+    });
+</script>
+</body>
+</html>

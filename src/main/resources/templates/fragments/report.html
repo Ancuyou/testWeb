@@ -1,0 +1,62 @@
+<div th:fragment="reportModal">
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-flag-fill"></i> Báo cáo vi phạm
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/reports/create}" method="post" id="reportForm">
+                    <div class="modal-body">
+                        <!-- Hidden fields với ID để JavaScript có thể truy cập -->
+                        <input type="hidden" name="contentType" id="reportContentType">
+                        <input type="hidden" name="contentId" id="reportContentId">
+
+                        <!-- Reason Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                Lý do báo cáo <span class="text-danger">*</span>
+                            </label>
+                            <select name="reason" class="form-select" required>
+                                <option value="">-- Chọn lý do --</option>
+                                <option value="SPAM_ADS">Spam/Quảng cáo</option>
+                                <option value="HATEFUL_LANGUAGE">Ngôn từ thù hận, xúc phạm</option>
+                                <option value="ADULT_CONTENT">Nội dung 18+</option>
+                                <option value="MISINFORMATION">Thông tin sai lệch, nguy hiểm</option>
+                                <option value="HARASSMENT">Quấy rối</option>
+                                <option value="OTHER">Khác</option>
+                            </select>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả chi tiết (tùy chọn)</label>
+                            <textarea name="description" class="form-control" rows="4" maxlength="500"
+                                placeholder="Vui lòng mô tả chi tiết về vấn đề bạn gặp phải..."></textarea>
+                            <small class="text-muted">Tối đa 500 ký tự</small>
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            <small>
+                                Báo cáo của bạn sẽ được quản trị viên xem xét.
+                                Vui lòng chỉ báo cáo nội dung thực sự vi phạm quy định.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Hủy
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-flag-fill"></i> Gửi báo cáo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

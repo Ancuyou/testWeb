@@ -1,0 +1,87 @@
+<th:block th:replace="~{pages/manager/layout-manager :: layout(~{::consultants_content}, 'report')}">
+    <th:block th:fragment="consultants_content">
+
+        <div class="container-fluid py-4">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1 text-dark fw-bold">
+                        <i class="fas fa-user-tie text-primary me-2"></i> Báo cáo Hiệu suất Tư vấn viên
+                    </h2>
+                    <p class="text-muted small mb-0">Thống kê và đánh giá năng suất tư vấn theo thời gian</p>
+                </div>
+            </div>
+
+            <!-- Bộ lọc thời gian -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <form th:action="@{/manager/reports/consultants}" method="get" class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark"><i class="fas fa-calendar-day me-1"></i> Từ ngày</label>
+                            <input type="datetime-local" name="startDate" class="form-control" th:value="${startDate}">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark"><i class="fas fa-calendar-check me-1"></i> Đến ngày</label>
+                            <input type="datetime-local" name="endDate" class="form-control" th:value="${endDate}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                                <i class="fas fa-filter me-2"></i>Lọc
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tổng quan -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);">
+                        <div class="card-body text-white p-4">
+                            <h6 class="text-white-50 text-uppercase fw-semibold mb-2">Tổng số tư vấn viên</h6>
+                            <h2 class="display-4 fw-bold mb-0" th:text="${totalConsultants}">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng dữ liệu -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-4 pb-3">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-table me-2 text-primary"></i>Chi tiết tư vấn viên</h5>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr class="fw-semibold text-dark">
+                            <th>Họ tên</th>
+                            <th class="text-center">Câu trả lời</th>
+                            <th class="text-center">Lĩnh vực</th>
+                            <th class="text-center">Kinh nghiệm (năm)</th>
+                            <th class="text-center">Hiệu suất (%)</th>
+                            <th class="text-center">Đúng hạn (%)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="c : ${reports}">
+                            <td th:text="${c.fullName}"></td>
+                            <td class="text-center" th:text="${c.totalAnswers}"></td>
+                            <td class="text-center" th:text="${c.totalFields}"></td>
+                            <td class="text-center" th:text="${c.experienceYears}"></td>
+                            <td class="text-center">
+                                <span th:text="${#numbers.formatDecimal(c.performanceRate, 1, 1)} + '%'"></span>
+                            </td>
+                            <td class="text-center">
+                                <span th:text="${#numbers.formatDecimal(c.onTimeRate, 1, 1)} + '%'"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </th:block>
+</th:block>

@@ -1,0 +1,145 @@
+<th:block th:replace="~{pages/manager/layout-manager :: layout(~{::users_content}, 'report')}">
+    <th:block th:fragment="users_content">
+
+        <div class="container-fluid py-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1 text-dark fw-bold">
+                        <i class="fas fa-users text-primary me-2"></i> Báo cáo Người dùng
+                    </h2>
+                    <p class="text-muted small mb-0">Thống kê số lượng và mức độ hoạt động người dùng</p>
+                </div>
+                <a th:href="@{/manager/reports/questions}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i> Báo cáo Câu hỏi
+                </a>
+            </div>
+            <!-- Bộ lọc thời gian -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <form th:action="@{/manager/reports/users}" method="get" class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-day me-1"></i> Từ ngày
+                            </label>
+                            <input type="datetime-local" name="startDate" class="form-control form-control-lg"
+                                   th:value="${startDate}" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-check me-1"></i> Đến ngày
+                            </label>
+                            <input type="datetime-local" name="endDate" class="form-control form-control-lg"
+                                   th:value="${endDate}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">
+                                <i class="fas fa-filter me-2"></i>Lọc
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tổng quan -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);">
+                        <div class="card-body text-white p-4">
+                            <h6 class="text-white-50 text-uppercase fw-semibold mb-2">Tổng số người dùng</h6>
+                            <h2 class="display-4 fw-bold mb-0" th:text="${totalUsers}">0</h2>
+                            <p class="small mt-2"><i class="fas fa-user-plus me-2"></i>Tổng số tài khoản đã đăng ký</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="card-body text-white p-4">
+                            <h6 class="text-white-50 text-uppercase fw-semibold mb-2">Người dùng hoạt động</h6>
+                            <h2 class="display-4 fw-bold mb-0" th:text="${activeUsers}">0</h2>
+                            <p class="small mt-2"><i class="fas fa-bolt me-2"></i>Hoạt động trong 30 ngày gần nhất</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-user-tag text-primary me-2"></i> Người dùng theo vai trò
+                            </h5>
+                            <p class="text-muted small mb-0">Tỷ lệ số lượng người dùng theo RoleName</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartRole" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-crown text-warning me-2"></i> Top 10 người dùng tích cực
+                            </h5>
+                            <p class="text-muted small mb-0">Người gửi nhiều câu hỏi nhất</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartTopUsers" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script th:inline="javascript">
+
+            // Lấy ra một mảng CHỈ CÓ thuộc tính 'name' từ list ${usersByRole}
+            const roleLabels = /*[[${usersByRole.![name]}]]*/ [];
+
+            // Lấy ra một mảng CHỈ CÓ thuộc tính 'count' từ list ${usersByRole}
+            const roleData = /*[[${usersByRole.![count]}]]*/ [];
+
+            // Tương tự cho topUsers
+            const topLabels = /*[[${topUsers.![name]}]]*/ [];
+            const topData = /*[[${topUsers.![count]}]]*/ [];
+
+            new Chart(document.getElementById("chartRole"), {
+                type: "doughnut",
+                data: {
+                    labels: roleLabels,
+                    datasets: [{
+                        data: roleData,
+                        backgroundColor: ['#36d1dc', '#5b86e5', '#43e97b', '#38f9d7'],
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            new Chart(document.getElementById("chartTopUsers"), {
+                type: "bar",
+                data: {
+                    labels: topLabels,
+                    datasets: [{
+                        label: "Số câu hỏi gửi",
+                        data: topData,
+                        backgroundColor: '#f093fb',
+                        borderRadius: 8,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        </script>
+
+    </th:block>
+</th:block>

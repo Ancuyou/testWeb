@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{pages/admin/layout :: layout(~{::notification_form_content}, 'notifications')}">
+
+    <th:block th:fragment="notification_form_content">
+        <div class="container py-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-bell me-2"></i>
+                    <span th:text="${notification != null && notification.notificationID != null} ? 'Chỉnh sửa thông báo' : 'Thêm thông báo mới'"></span>
+                </h2>
+                <a th:href="@{/admin/notifications}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+
+            <!-- Thông báo khi PUBLISHED -->
+            <div th:if="${notification != null && notification.notificationID != null && notification.status == 'PUBLISHED'}"
+                 class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-lock me-2"></i>
+                <strong>Thông báo đã xuất bản!</strong> Thông báo này đã được xuất bản và không thể chỉnh sửa.
+                Bạn cần chuyển về chế độ nháp để chỉnh sửa.
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form th:action="${notification != null and notification.notificationID != null}
+                        ? @{/admin/notifications/edit/{id}(id=${notification.notificationID})}
+                        : @{/admin/notifications/add}"
+                          method="post"
+                          th:object="${notification}"
+                          onsubmit="return validateForm()">
+                    <div class="row g-3">
+                            <!-- Tiêu đề -->
+                            <div class="col-12">
+                                <label for="title" class="form-label fw-semibold">
+                                    <i class="fas fa-heading me-1 text-primary"></i>Tiêu đề <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="title"
+                                       name="title"
+                                       th:value="${notification?.title}"
+                                       th:readonly="${notification != null && notification.notificationID != null && notification.status == 'PUBLISHED'}"
+                                       maxlength="200"
+                                       required
+                                       placeholder="Nhập tiêu đề thông báo">
+                            </div>
+
+                            <!-- Đối tượng nhận -->
+                            <div class="col-md-6">
+                                <label for="targetType" class="form-label fw-semibold">
+                                    <i class="fas fa-users me-1 text-primary"></i>Đối tượng nhận <span class="text-danger">*</span>
+                                </label>
+                                <select id="targetType"
+                                        name="targetType"
+                                        class="form-select"
+                                        th:disabled="${notification != null && notification.notificationID != null && notification.status == 'PUBLISHED'}"
+
+                                        required>
+                                    <option value="">-- Chọn đối tượng --</option>
+                                    <option value="ALL" th:selected="${notification?.targetType?.name() == 'ALL'}">Tất cả người dùng</option>
+                                    <option value="Manager" th:selected="${notification?.targetType?.name() == 'Manager'}">Người quản lý</option>
+                                    <option value="Consultant" th:selected="${notification?.targetType?.name() == 'Consultant'}">Tư vấn viên</option>
+                                    <option value="User" th:selected="${notification?.targetType?.name() == 'User'}">Người dùng</option>
+                                </select>
+                                <!-- Hidden input để giữ giá trị khi disabled -->
+                                <input th:if="${notification != null && notification.notificationID != null && notification.status == 'PUBLISHED'}"
+                                       type="hidden"
+                                       name="targetType"
+                                       th:value="${notification.targetType?.name()}"/>
+                            </div>
+
+                            <!-- Trạng thái hiện tại (hiển thị) -->
+                            <div class="col-md-6" th:if="${notification != null && notification.notificationID != null}">
+                            <label class="form-label fw-semibold">
+                                    <i class="fas fa-info-circle me-1 text-primary"></i>Trạng thái hiện tại
+                                </label>
+                                <div class="form-control bg-light">
+                                    <span th:if="${notification.status == 'PUBLISHED'}" class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Đã xuất bản
+                                    </span>
+                                    <span th:if="${notification.status == 'DRAFT'}" class="badge bg-secondary">
+                                        <i class="fas fa-file-alt me-1"></i>Bản nháp
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái (hidden input) -->
+                            <input type="hidden" id="status" name="status"
+                                   th:value="${notification?.status != null ? notification.status : 'PUBLISHED'}"/>
+
+                            <!-- Nội dung -->
+                            <div class="col-12">
+                                <label for="content" class="form-label fw-semibold">
+                                    <i class="fas fa-align-left me-1 text-primary"></i>Nội dung <span class="text-danger">*</span>
+                                </label>
+                                <textarea id="content"
+                                          name="content"
+                                          class="form-control"
+                                          rows="6"
+                                          th:readonly="${notification != null && notification.notificationID != null && notification.status == 'PUBLISHED'}"
+                                          required
+                                          placeholder="Nhập nội dung thông báo... "
+                                          th:text="${notification?.content}"></textarea>
+                            </div>
+
+                            <!-- Xem trước -->
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-eye me-1"></i>Xem trước thông báo
+                                    </h6>
+                                    <hr>
+                                    <div id="previewContent">
+                                        <strong id="previewTitle"
+                                                th:text="${notification?.title != null ? notification.title : 'Tiêu đề sẽ hiển thị ở đây'}">
+                                        </strong>
+                                        <p id="previewText" class="mb-0 mt-2"
+                                           th:text="${notification?.content != null ? notification.content : 'Nội dung sẽ hiển thị ở đây'}">
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hành động -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a th:href="@{/admin/notifications}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Hủy
+                            </a>
+                            <div>
+                                <!-- Nút chuyển sang DRAFT (chỉ hiện khi PUBLISHED) -->
+                                <button th:if="${notification != null && notification.notificationID != null && notification.status == 'PUBLISHED'}"
+                                        type="button"
+                                        class="btn btn-warning"
+                                        onclick="convertToDraft()">
+                                    <i class="fas fa-edit me-1"></i>Chuyển sang chế độ nháp
+                                </button>
+
+                                <!-- Nút lưu nháp (chỉ hiện khi DRAFT hoặc thêm mới) -->
+                                <button th:if="${notification == null || notification.notificationID == null || notification.status == 'DRAFT'}"
+                                        type="button"
+                                        class="btn btn-outline-primary me-2"
+                                        onclick="saveDraft()">
+                                    <i class="fas fa-file-alt me-1"></i>Lưu nháp
+                                </button>
+
+                                <!-- Nút gửi/cập nhật (chỉ hiện khi DRAFT hoặc thêm mới) -->
+                                <button th:if="${notification == null || notification.notificationID == null || notification.status == 'DRAFT'}"
+                                        type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-paper-plane me-1"></i>
+                                    <span th:text="${notification != null && notification.notificationID != null} ? 'Cập nhật &amp; Xuất bản' : 'Xuất bản'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Script -->
+        <script th:inline="javascript">
+            const titleInput = document.getElementById('title');
+            const contentInput = document.getElementById('content');
+            const previewTitle = document.getElementById('previewTitle');
+            const previewText = document.getElementById('previewText');
+            const currentStatus = /*[[${notification?.status}]]*/ null;
+
+            // Preview real-time
+            titleInput.addEventListener('input', () => {
+                previewTitle.textContent = titleInput.value || 'Tiêu đề sẽ hiển thị ở đây';
+            });
+
+            contentInput.addEventListener('input', () => {
+                previewText.textContent = contentInput.value || 'Nội dung sẽ hiển thị ở đây';
+            });
+
+            // Validate form
+            function validateForm() {
+                const title = titleInput.value.trim();
+                const content = contentInput.value.trim();
+                const targetType = document.getElementById('targetType').value;
+
+                if (!title) {
+                    alert('Vui lòng nhập tiêu đề');
+                    return false;
+                }
+                if (!content) {
+                    alert('Vui lòng nhập nội dung');
+                    return false;
+                }
+                if (!targetType) {
+                    alert('Vui lòng chọn đối tượng nhận');
+                    return false;
+                }
+                return true;
+            }
+
+            // Lưu nháp (status = DRAFT)
+            function saveDraft() {
+                document.getElementById('status').value = 'DRAFT';
+                if (validateForm()) {
+                    document.querySelector('form').submit();
+                }
+            }
+
+            // Chuyển PUBLISHED sang DRAFT
+            function convertToDraft() {
+                if (confirm('Bạn có chắc muốn chuyển thông báo này sang chế độ nháp? Sau khi chuyển, bạn có thể chỉnh sửa nội dung.')) {
+                    document.getElementById('status').value = 'DRAFT';
+                    document.querySelector('form').submit();
+                }
+            }
+
+            // Khi bấm nút submit/cập nhật → status = PUBLISHED
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function() {
+                    document.getElementById('status').value = 'PUBLISHED';
+                });
+            }
+        </script>
+    </th:block>
+</th:block>
+</html>

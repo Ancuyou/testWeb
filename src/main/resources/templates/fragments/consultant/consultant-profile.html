@@ -1,0 +1,185 @@
+<!-- templates/fragments/consultant-profile.html -->
+<section th:fragment="consultant-profile" id="profile-management" class="py-5">
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold">Hồ sơ tư vấn viên</h2>
+                <p class="text-muted">Quản lý thông tin cá nhân và chuyên môn</p>
+            </div>
+        </div>
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <!-- Form bao bọc toàn bộ -->
+        <form th:action="@{/consultant/profile/update}" method="post" enctype="multipart/form-data">
+            <div class="row g-4">
+                <!-- Left Column - Personal Info -->
+                <div class="col-lg-4">
+                    <!-- Profile Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body text-center p-4">
+                           <div class="position-relative d-inline-block mb-4">
+                            <img id="avatarPreview"
+                                th:src="${profile.avatar != null and !#strings.isEmpty(profile.avatar) ? profile.avatar : '/qaute/images/default_avatar.png'}"
+                                class="rounded-circle img-thumbnail"
+                                alt="Avatar"
+                                width="150"
+                                height="150">
+                                
+                            <label for="avatarUpload"
+                                class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle"
+                                style="cursor: pointer;">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                               <button class="btn btn-sm btn-primary position-absolute bottom-0 start-0 rounded-circle shadow"
+                                       style="width: 35px; height: 35px;"
+                                       onclick="resetConsultantAvatar(event)"
+                                       type="button"
+                                       title="Xóa ảnh đại diện"
+                                       th:if="${profile.avatar != null && profile.avatar != '/qaute/images/default_avatar.png'}">
+                                   <i class="fas fa-times fa-lg"></i>
+                               </button>
+                            <input type="file"
+                                id="avatarUpload"
+                                name="avatarFile"
+                                accept="image/*"
+                                style="display: none;width: 35px; height: 35px;"
+                                onchange="previewAvatar(this)">
+
+                        </div>
+                            <h4 class="fw-bold mb-1" th:text="${profile.fullName != null ? profile.fullName : 'Chưa cập nhật'}">Nguyễn Văn Tư Vấn</h4>
+                            <p class="text-muted mb-3">Tư vấn viên</p>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-primary">
+                                    <i class="fas fa-eye me-2"></i> Xem hồ sơ công khai
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Professional Info -->
+                <div class="col-lg-8">
+                    <!-- Personal Information Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="card-title mb-0 fw-semibold">Thông tin cá nhân</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="fullName" th:value="${profile.fullName}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" th:value="${account.email}" disabled>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" name="phone" th:value="${profile.phone}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên đăng nhập</label>
+                                    <input type="text" class="form-control" th:value="${account.username}" disabled>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Vai trò</label>
+                                    <input type="text" class="form-control" th:value="${account.role}" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Information Card -->
+                    <div class="card border-0 shadow-sm mb-4" th:if="${consultant != null}">
+                        <div class="card-header bg-white">
+                            <h5 class="card-title mb-0 fw-semibold">Thông tin chuyên môn</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Consultant ID</label>
+                                    <input type="text" class="form-control" th:value="${consultant.consultantID}" disabled>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Năm kinh nghiệm <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="experienceYears" th:value="${consultant.experienceYears}" min="0" required>
+                                </div>
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Thông tin tư vấn viên:</strong><br>
+                                        ID: <span th:text="${consultant.consultantID}">N/A</span><br>
+                                        Kinh nghiệm: <span th:text="${consultant.experienceYears}">N/A</span> năm
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No Consultant Profile Message -->
+                    <div class="card border-0 shadow-sm mb-4" th:if="${consultant == null}">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Chưa có thông tin tư vấn viên</h5>
+                            <p class="text-muted">Vui lòng liên hệ quản trị viên để thiết lập hồ sơ tư vấn viên</p>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i> Lưu thay đổi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        const DEFAULT_CONSULTANT_AVATAR = /*[[@{/qaute/images/default_avatar.png}]]*/ '/qaute/images/default_avatar.png';
+        function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('avatarPreview');
+            if (preview) {
+                preview.src = e.target.result;
+            }
+            const resetFlag = document.getElementById('resetAvatarFlag');
+            if (resetFlag) resetFlag.value = '';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+}
+        function resetConsultantAvatar(event) {
+            event.preventDefault(); // Ngăn form submit
+
+            if (confirm('Bạn có chắc muốn xóa ảnh đại diện và đặt về mặc định?')) {
+                // Đổi preview về ảnh mặc định
+                const img = document.getElementById('avatarPreview');
+                if (img) img.src = DEFAULT_CONSULTANT_AVATAR;
+
+                // Clear file input
+                const fileInput = document.getElementById('avatarUpload');
+                if (fileInput) fileInput.value = '';
+
+                // Đặt flag để controller biết cần reset
+                const resetFlag = document.getElementById('resetAvatarFlag');
+                if (resetFlag) resetFlag.value = 'true';
+
+                // Ẩn nút X
+                const btn = event.target.closest('button');
+                if (btn) btn.style.display = 'none';
+            }
+        }
+    </script>
+</section>

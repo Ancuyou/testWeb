@@ -1,0 +1,198 @@
+<th:block th:replace="~{pages/manager/layout-manager :: layout(~{::bad_contents}, 'bad-contents')}">
+    <th:block th:fragment="bad_contents">
+
+        <div class="container-fluid py-4">
+
+            <!-- Tiêu đề -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 fw-bold text-danger mb-1">
+                        <i class="fas fa-ban me-2"></i> Quản lý Nội dung xấu
+                    </h2>
+                    <p class="text-muted small mb-0">Lọc theo thời gian và xử lý nội dung vi phạm</p>
+                </div>
+            </div>
+
+            <!-- Bộ lọc thời gian -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-day me-1"></i> Từ ngày giờ
+                            </label>
+                            <input type="datetime-local" name="startDate" class="form-control" th:value="${startDate}">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-check me-1"></i> Đến ngày giờ
+                            </label>
+                            <input type="datetime-local" name="endDate" class="form-control" th:value="${endDate}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-filter me-2"></i> Lọc
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bảng kết quả -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Danh sách nội dung vi phạm
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Tiêu đề</th>
+                            <th>Nội dung</th>
+                            <th>Người gửi</th>
+                            <th>Ngày gửi</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="q : ${toxicPage.content}"
+                            th:classappend="${q.status.name() == 'PENDING'} ? 'table-warning' : 'table-danger'">
+
+                            <td th:text="${q.title}"></td>
+
+                            <!-- Cột nội dung: rút gọn + nút xem thêm -->
+                            <td style="max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <span th:text="${q.content}"></span>
+                                <button type="button" class="btn btn-link text-danger p-0 ms-2"
+                                        style="font-size: 13px;"
+                                        data-bs-toggle="modal"
+                                        th:data-bs-target="'#viewContentModal-' + ${q.questionID}">
+                                    (xem thêm)
+                                </button>
+                            </td>
+
+                            <td th:text="${q.user.profile.fullName}"></td>
+                            <td th:text="${#temporals.format(q.dateSend, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td><span th:text="${q.status}" class="badge bg-secondary"></span></td>
+
+                            <td class="text-center">
+                                <form th:action="@{/manager/bad-contents/approved/{id}(id=${q.questionID})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check"></i> Approved
+                                    </button>
+                                </form>
+                                <form th:action="@{/manager/bad-contents/rejected/{id}(id=${q.questionID})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-times"></i> Rejected
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${toxicPage.content.isEmpty()}">
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Không có nội dung xấu nào trong khoảng thời gian này
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang -->
+                <div class="card-footer" th:if="${totalPages > 0}">
+                    <nav aria-label="Phân trang nội dung xấu">
+                        <ul class="pagination justify-content-center mb-0">
+                            <!-- Nút Previous -->
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/manager/bad-contents(page=${currentPage - 1}, startDate=${startDate}, endDate=${endDate})}"
+                                   aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <!-- Số trang -->
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/manager/bad-contents(page=${i}, startDate=${startDate}, endDate=${endDate})}"
+                                   th:text="${i + 1}">1</a>
+                            </li>
+
+                            <!-- Nút Next -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/manager/bad-contents(page=${currentPage + 1}, startDate=${startDate}, endDate=${endDate})}"
+                                   aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <!-- Thông tin phân trang -->
+                    <div class="text-center mt-2 text-muted">
+                        <small>
+                            Trang <span th:text="${currentPage + 1}">1</span> /
+                            <span th:text="${totalPages}">1</span>
+                            (Tổng <span th:text="${toxicPage.totalElements}">0</span> nội dung)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal xem chi tiết nội dung -->
+        <div th:each="q : ${toxicPage.content}" th:id="'viewContentModal-' + ${q.questionID}"
+             class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title"><i class="fas fa-eye me-2"></i> Chi tiết nội dung vi phạm</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Tiêu đề:</strong> <span th:text="${q.title}"></span></p>
+                        <p><strong>Người gửi:</strong> <span th:text="${q.user.profile.fullName}"></span></p>
+                        <p><strong>Ngày gửi:</strong> <span th:text="${#temporals.format(q.dateSend, 'dd/MM/yyyy HH:mm')}"></span></p>
+                        <hr>
+                        <p class="fw-semibold">Nội dung:</p>
+                        <div class="p-3 border rounded bg-light"
+                             style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">
+                            <span th:text="${q.content}"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <form th:action="@{/manager/bad-contents/approved/{id}(id=${q.questionID})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Approved
+                            </button>
+                        </form>
+                        <form th:action="@{/manager/bad-contents/rejected/{id}(id=${q.questionID})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="fas fa-times"></i> Rejected
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .table-warning { background-color: #fff3cd !important; }
+            .table-danger { background-color: #f8d7da !important; }
+            .page-link { color: #dc3545; }
+            .page-item.active .page-link { background-color: #dc3545; border-color: #dc3545; }
+            .btn-link { font-size: 14px; text-decoration: underline; }
+            .btn-link:hover { color: #b02a37; }
+            .modal-content { border-radius: 1rem; }
+            .modal-body { font-size: 15px; line-height: 1.6; }
+        </style>
+
+    </th:block>
+</th:block>

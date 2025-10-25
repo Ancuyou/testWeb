@@ -1,0 +1,228 @@
+<th:block th:replace="~{pages/manager/layout-manager :: layout(~{::questions_content}, 'report')}">
+    <th:block th:fragment="questions_content">
+        <div class="container-fluid py-4">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h3 mb-1 text-dark fw-bold">
+                        <i class="fas fa-question-circle text-primary me-2"></i> Báo cáo Câu hỏi
+                    </h2>
+                    <p class="text-muted small mb-0">Thống kê số lượng và tình trạng câu hỏi</p>
+                </div>
+            </div>
+
+            <!-- Bộ lọc thời gian -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <form th:action="@{/manager/reports/answers}" method="get" class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-day me-1"></i> Từ ngày
+                            </label>
+                            <input type="datetime-local" name="startDate" class="form-control form-control-lg"
+                                   th:value="${startDate}" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-calendar-check me-1"></i> Đến ngày
+                            </label>
+                            <input type="datetime-local" name="endDate" class="form-control form-control-lg"
+                                   th:value="${endDate}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">
+                                <i class="fas fa-filter me-2"></i>Lọc
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tổng quan -->
+            <div class="row g-4 mb-4">
+                <!-- Tổng số câu hỏi -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg h-100 overflow-hidden position-relative"
+                         style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-semibold mb-2" style="letter-spacing: 1px;">
+                                        Tổng số câu hỏi
+                                    </h6>
+                                    <h2 class="display-4 fw-bold mb-0" th:text="${totalQuestions}">0</h2>
+                                </div>
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                    <i class="fas fa-question fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-chart-line me-2"></i>
+                                <span class="small">Trong khoảng thời gian đã chọn</span>
+                            </div>
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 opacity-25"
+                             style="font-size: 120px; line-height: 1; margin: -20px;">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tỉ lệ câu hỏi được trả lời -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg h-100 overflow-hidden position-relative"
+                         style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-semibold mb-2" style="letter-spacing: 1px;">
+                                        Tỉ lệ được trả lời
+                                    </h6>
+                                    <h2 class="display-4 fw-bold mb-0">
+                                        <span th:text="${answeredRate}">0</span>%
+                                    </h2>
+                                </div>
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-percentage me-2"></i>
+                                <span class="small">Tổng câu hỏi đã được trả lời</span>
+                            </div>
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 opacity-25"
+                             style="font-size: 120px; line-height: 1; margin: -20px;">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-layer-group text-primary me-2"></i>
+                                Theo Lĩnh vực
+                            </h5>
+                            <p class="text-muted small mb-0">Phân bố câu hỏi theo lĩnh vực</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartField" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-building text-success me-2"></i>
+                                Theo Khoa/Ngành
+                            </h5>
+                            <p class="text-muted small mb-0">Phân bố câu hỏi theo khoa/ngành</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartDept" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-4">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-clipboard-list text-warning me-2"></i>
+                                Theo Trạng thái
+                            </h5>
+                            <p class="text-muted small mb-0">Pending / Answered / Rejected /...</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartStatus" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-3">
+                            <h5 class="mb-1 fw-bold text-dark">
+                                <i class="fas fa-calendar-alt text-danger me-2"></i>
+                                Theo Ngày
+                            </h5>
+                            <p class="text-muted small mb-0">Xu hướng câu hỏi theo thời gian</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartDate" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Style (reuse style từ AnswerReport) -->
+        <style>
+            body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+            .card { transition: transform 0.2s, box-shadow 0.2s; }
+            .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important; }
+            .form-control:focus {
+                border-color: #667eea; box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            }
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none; transition: all 0.3s;
+            }
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+            .btn-outline-primary {
+                border-color: #667eea; color: #667eea; transition: all 0.3s;
+            }
+            .btn-outline-primary:hover {
+                background: #667eea; color: #fff; transform: translateY(-2px);
+            }
+        </style>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            const fieldLabels = /*[[${fieldLabels}]]*/ [];
+            const fieldData = /*[[${fieldData}]]*/ [];
+            const deptLabels = /*[[${deptLabels}]]*/ [];
+            const deptData = /*[[${deptData}]]*/ [];
+            const statusLabels = /*[[${statusLabels}]]*/ [];
+            const statusData = /*[[${statusData}]]*/ [];
+            const dateLabels = /*[[${dateLabels}]]*/ [];
+            const dateData = /*[[${dateData}]]*/ [];
+
+            new Chart(document.getElementById('chartField'), {
+                type: 'bar',
+                data: { labels: fieldLabels, datasets: [{ label: 'Theo lĩnh vực', data: fieldData, backgroundColor: '#17a2b8' }] }
+            });
+            new Chart(document.getElementById('chartDept'), {
+                type: 'bar',
+                data: { labels: deptLabels, datasets: [{ label: 'Theo khoa/ngành', data: deptData, backgroundColor: '#6f42c1' }] }
+            });
+            new Chart(document.getElementById('chartStatus'), {
+                type: 'doughnut',
+                data: { labels: statusLabels, datasets: [{ data: statusData, backgroundColor: ['#007bff','#28a745','#ffc107','#dc3545'] }] }
+            });
+            new Chart(document.getElementById('chartDate'), {
+                type: 'line',
+                data: { labels: dateLabels, datasets: [{ label: 'Theo ngày', data: dateData, borderColor: '#007bff', tension: 0.4 }] }
+            });
+            /*]]>*/
+        </script>
+
+
+    </th:block>
+</th:block>
