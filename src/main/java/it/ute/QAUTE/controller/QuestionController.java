@@ -1,5 +1,7 @@
 package it.ute.QAUTE.controller;
 
+import it.ute.QAUTE.dto.FieldDTO;
+import it.ute.QAUTE.dto.HotTopicDTO;
 import it.ute.QAUTE.dto.QuestionDTO;
 import it.ute.QAUTE.entity.*;
 import it.ute.QAUTE.service.AccountService;
@@ -83,6 +85,8 @@ public class QuestionController {
         if (highlightQuestionId != null) {
             model.addAttribute("highlightQuestionId", highlightQuestionId);
         }
+        List<HotTopicDTO> hotTopics = questionService.getTop5HotTopics();
+        model.addAttribute("hotTopics", hotTopics);
 
         return "pages/user/questions";
     }
@@ -228,13 +232,18 @@ public class QuestionController {
 
     @GetMapping("/api/fields/{departmentId}")
     @ResponseBody
-    public List<Field> getFieldsByDepartment(@PathVariable Integer departmentId) {
-        return questionService.getFieldsByDepartmentId(departmentId);
+    public java.util.List<FieldDTO> getFieldsByDepartment(@PathVariable Integer departmentId) {
+        java.util.List<Field> fields = questionService.getFieldsByDepartmentId(departmentId);
+        return fields.stream()
+                .map(f -> new FieldDTO(f.getFieldID(), f.getFieldName()))
+                .toList();
     }
 
     @GetMapping("/api/fields/all")
     @ResponseBody
-    public List<Field> getAllFields() {
-        return questionService.getAllFields();
+    public java.util.List<FieldDTO> getAllFields() {
+        return questionService.getAllFields().stream()
+                .map(f -> new FieldDTO(f.getFieldID(), f.getFieldName()))
+                .toList();
     }
 }

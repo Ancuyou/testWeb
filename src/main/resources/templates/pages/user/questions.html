@@ -288,27 +288,29 @@
 
                 <!-- SIDEBAR -->
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-header bg-white">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-fire me-2 text-danger"></i>Chủ đề nổi bật</h6>
+
+                    <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                        <div class="card-header text-white py-3 border-0"
+                             style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fas fa-fire me-2"></i>Chủ đề HOT
+                            </h6>
                         </div>
-                        <div class="list-group list-group-flush">
-                            <a href="#"
-                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                #HọcBổng<span class="badge bg-primary rounded-pill">14</span>
-                            </a>
-                            <a href="#"
-                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                #ThựcTập<span class="badge bg-primary rounded-pill">12</span>
-                            </a>
-                            <a href="#"
-                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                #ĐăngKýHọcPhần<span class="badge bg-primary rounded-pill">9</span>
-                            </a>
-                            <a href="#"
-                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                #TuyểnDụng<span class="badge bg-primary rounded-pill">7</span>
-                            </a>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                <a th:each="topic : ${hotTopics}"
+                                   th:href="@{/user/questions(departmentId=${topic.type == 'department' ? topic.id : null}, fieldId=${topic.type == 'field' ? topic.id : null})}"
+                                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 py-3 px-4 hover-bg-light">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-danger rounded-circle me-3" style="width: 8px; height: 8px; padding: 0;"></span>
+                                        <span class="fw-medium" th:text="'#' + ${topic.name}">#Chủ đề</span>
+                                    </div>
+                                    <span class="badge bg-danger rounded-pill px-3 py-2" th:text="${topic.count}">0</span>
+                                </a>
+                                <div th:if="${hotTopics == null or #lists.isEmpty(hotTopics)}" class="list-group-item text-center text-muted p-4">
+                                    Chưa có chủ đề nào nổi bật.
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -352,7 +354,6 @@
                     <h5 class="model-title" id="askQuestionModalLabel">
                         <i class="fas fa-pen-to-square me-2"></i> Đặt câu hỏi mới
                     </h5>
-                    <button type="button" class="btn-close" data-bs-đismiss="modal" aria-label="Clase"></button>
                 </div>
                 <form th:action="@{/user/questions/ask}"
                       th:object="${questionDTO}"
@@ -445,7 +446,7 @@
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
     <!-- JAVASCRIPT -->
-    <script>
+    <script th:inline="javascript">
         (function () {
             'use strict';
 
@@ -504,7 +505,7 @@
                     setTimeout(() => {
                         const card = document.querySelector('[data-question-id="' + highlightId + '"]');
                         if (card) {
-                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            card.scrollIntoView({behavior: 'smooth', block: 'center'});
                         }
                     }, 300);
                 }
@@ -550,126 +551,113 @@
                 console.log('✅ Modal shown');
             }
 
+            // Context path (Thymeleaf renders it, fallback for IDE)
+            const ctx = /*[[@{/}]]*/ '/';
+
+            // Safe fetch that expects an array
+            async function fetchJsonArray(url) {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status} @ ${url}`);
+                const data = await res.json();
+                if (!Array.isArray(data)) throw new TypeError('Expected JSON array');
+                return data;
+            }
+
+            // Modal cascade
             function initDepartmentFieldCascade() {
                 const departmentSelect = document.getElementById('department');
                 const fieldSelect = document.getElementById('field');
-
                 if (!departmentSelect || !fieldSelect) return;
 
-                departmentSelect.addEventListener('change', function() {
-                    const departmentId = this.value;
+                departmentSelect.addEventListener('change', async function () {
+                    const departmentId = (this.value || '').trim();
 
-                    // Reset field select
-                    fieldSelect.innerHTML = '<option value="">-- Đang tải... --</option>';
                     fieldSelect.disabled = true;
+                    fieldSelect.innerHTML = '<option value="">-- Đang tải... --</option>';
 
                     if (!departmentId) {
                         fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực (nếu có) --</option>';
                         return;
                     }
 
-                    // Fetch fields by department
-                    fetch(/*[[@{/api/fields/}]]*/ '/api/fields/' + departmentId)
-                        .then(response => response.json())
-                        .then(fields => {
-                            fieldSelect.disabled = false;
-                            fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực (tùy chọn) --</option>';
-                            fields.forEach(field => {
-                                const option = document.createElement('option');
-                                option.value = field.fieldID;
-                                option.textContent = field.fieldName;
-                                fieldSelect.appendChild(option);
-                            });
-                        })
-                        .catch(error => {
-                            console.error('Error loading fields:', error);
-                            fieldSelect.disabled = true;
-                            fieldSelect.innerHTML = '<option value="">-- Lỗi khi tải dữ liệu --</option>';
+                    try {
+                        const fields = await fetchJsonArray(`${ctx}api/fields/${encodeURIComponent(departmentId)}`);
+                        fieldSelect.disabled = false;
+                        fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực (tùy chọn) --</option>';
+                        fields.forEach(f => {
+                            const opt = document.createElement('option');
+                            opt.value = f.fieldID;
+                            opt.textContent = f.fieldName;
+                            fieldSelect.appendChild(opt);
                         });
-                });
-            }
-
-            function initFilterDepartmentFieldCascade() {
-                const departmentFilter = document.getElementById('departmentFilter');
-                const fieldFilter = document.getElementById('fieldFilter');
-
-                if (!departmentFilter || !fieldFilter) return;
-
-                departmentFilter.addEventListener('change', function() {
-                    const departmentId = this.value;
-                    const currentFieldValue = fieldFilter.value;
-
-                    // Clear field options
-                    fieldFilter.innerHTML = '<option value="">Tất cả lĩnh vực</option>';
-
-                    if (!departmentId) {
-                        // No department selected - load all fields
-                        fetch(/*[[@{/api/fields/all}]]*/ '/api/fields/all')
-                            .then(response => response.json())
-                            .then(fields => {
-                                fields.forEach(field => {
-                                    const option = document.createElement('option');
-                                    option.value = field.fieldID;
-                                    option.textContent = field.fieldName;
-                                    if (field.fieldID.toString() === currentFieldValue) {
-                                        option.selected = true;
-                                    }
-                                    fieldFilter.appendChild(option);
-                                });
-                            })
-                            .catch(error => console.error('Error loading all fields:', error));
-                    } else {
-                        // Department selected - load only fields for that department
-                        fetch(/*[[@{/api/fields/}]]*/ '/api/fields/' + departmentId)
-                            .then(response => response.json())
-                            .then(fields => {
-                                fields.forEach(field => {
-                                    const option = document.createElement('option');
-                                    option.value = field.fieldID;
-                                    option.textContent = field.fieldName;
-                                    if (field.fieldID.toString() === currentFieldValue) {
-                                        option.selected = true;
-                                    }
-                                    fieldFilter.appendChild(option);
-                                });
-                            })
-                            .catch(error => console.error('Error loading fields:', error));
+                    } catch (e) {
+                        console.error('Error loading fields (modal):', e);
+                        fieldSelect.disabled = true;
+                        fieldSelect.innerHTML = '<option value="">-- Lỗi khi tải dữ liệu --</option>';
                     }
                 });
             }
 
-            initFilterDepartmentFieldCascade();
-            initDepartmentFieldCascade();
-
-// Load fields on page load based on selected department
-            (function loadInitialFields() {
-                const selectedDeptId = '[[${selectedDepartmentId}]]';
-                const selectedFieldId = '[[${selectedFieldId}]]';
+            // Filter cascade
+            function initFilterDepartmentFieldCascade() {
+                const departmentFilter = document.getElementById('departmentFilter');
                 const fieldFilter = document.getElementById('fieldFilter');
+                if (!departmentFilter || !fieldFilter) return;
 
+                departmentFilter.addEventListener('change', async function () {
+                    const departmentId = (this.value || '').trim();
+                    const currentFieldValue = (fieldFilter.value || '').toString();
+                    fieldFilter.innerHTML = '<option value="">Tất cả lĩnh vực</option>';
+
+                    const url = departmentId
+                        ? `${ctx}api/fields/${encodeURIComponent(departmentId)}`
+                        : `${ctx}api/fields/all`;
+
+                    try {
+                        const fields = await fetchJsonArray(url);
+                        fields.forEach(f => {
+                            const opt = document.createElement('option');
+                            opt.value = f.fieldID;
+                            opt.textContent = f.fieldName;
+                            if (f.fieldID != null && f.fieldID.toString() === currentFieldValue) opt.selected = true;
+                            fieldFilter.appendChild(opt);
+                        });
+                    } catch (e) {
+                        console.error('Error loading fields (filter):', e);
+                    }
+                });
+            }
+
+            // Initial population for field filter
+            (function loadInitialFields() {
+                // Render raw values (number/null) to avoid the string "null"
+                const selectedDeptId = /*[[${selectedDepartmentId}]]*/ null;
+                const selectedFieldId = /*[[${selectedFieldId}]]*/ null;
+                const fieldFilter = document.getElementById('fieldFilter');
                 if (!fieldFilter) return;
 
-                const url = selectedDeptId && selectedDeptId !== ''
-                    ? /*[[@{/api/fields/}]]*/ '/api/fields/' + selectedDeptId
-                    : /*[[@{/api/fields/all}]]*/ '/api/fields/all';
+                const hasDept = selectedDeptId !== null && selectedDeptId !== '' && selectedDeptId !== undefined;
+                const url = hasDept ? `${ctx}api/fields/${encodeURIComponent(selectedDeptId)}` : `${ctx}api/fields/all`;
 
-                fetch(url)
-                    .then(response => response.json())
+                fetchJsonArray(url)
                     .then(fields => {
                         fieldFilter.innerHTML = '<option value="">Tất cả lĩnh vực</option>';
-                        fields.forEach(field => {
-                            const option = document.createElement('option');
-                            option.value = field.fieldID;
-                            option.textContent = field.fieldName;
-                            if (selectedFieldId && field.fieldID.toString() === selectedFieldId) {
-                                option.selected = true;
+                        fields.forEach(f => {
+                            const opt = document.createElement('option');
+                            opt.value = f.fieldID;
+                            opt.textContent = f.fieldName;
+                            if (selectedFieldId != null && f.fieldID != null && f.fieldID.toString() === selectedFieldId.toString()) {
+                                opt.selected = true;
                             }
-                            fieldFilter.appendChild(option);
+                            fieldFilter.appendChild(opt);
                         });
                     })
-                    .catch(error => console.error('Error loading initial fields:', error));
+                    .catch(e => console.error('Error loading initial fields:', e));
             })();
 
+            // Init
+            initFilterDepartmentFieldCascade();
+            initDepartmentFieldCascade();
         })();
     </script>
 </body>
