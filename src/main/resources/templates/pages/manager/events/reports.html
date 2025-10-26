@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{pages/manager/layout-manager :: layout(~{::content}, 'events')}">
+<th:block th:fragment="content">
+    <div class="py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">
+                    <i class="fas fa-chart-bar text-primary me-2"></i>Báo cáo Sự kiện
+                </h2>
+                <p class="text-muted mb-0">Thống kê và báo cáo về hoạt động sự kiện</p>
+            </div>
+            <a th:href="@{/manager/events}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form th:action="@{/manager/events/reports}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="startDate" class="form-label small fw-semibold">Từ ngày</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" 
+                               th:value="${selectedStartDate}">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="endDate" class="form-label small fw-semibold">Đến ngày</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" 
+                               th:value="${selectedEndDate}">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Kết quả lọc: 
+            <span class="text-primary" th:text="${#temporals.format(selectedStartDate, 'dd/MM/yyyy')}"></span>
+             - 
+            <span class="text-primary" th:text="${#temporals.format(selectedEndDate, 'dd/MM/yyyy')}"></span>
+        </h4>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 mb-1">Tổng SK (trong kỳ)</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${totalEventsInRange}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-success text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 mb-1">Đã duyệt (trong kỳ)</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${approvedEventsInRange}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-warning text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 mb-1">Chờ duyệt (trong kỳ)</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${pendingEventsInRange}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Thống kê toàn thời gian</h4>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm bg-light">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-1">Tổng (Đã duyệt)</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${totalAllTime}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm bg-light">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-1">Tổng (Chờ duyệt)</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${pendingAllTime}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        </div>
+</th:block>
+</html>

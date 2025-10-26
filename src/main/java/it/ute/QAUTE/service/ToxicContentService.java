@@ -1,7 +1,7 @@
 package it.ute.QAUTE.service;
 
-import it.ute.QAUTE.Exception.AppException;
-import it.ute.QAUTE.Exception.ErrorCode;
+import it.ute.QAUTE.exception.AppException;
+import it.ute.QAUTE.exception.ErrorCode;
 import it.ute.QAUTE.entity.Question;
 import it.ute.QAUTE.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;

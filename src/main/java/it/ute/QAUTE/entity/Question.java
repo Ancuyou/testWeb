@@ -3,9 +3,12 @@ package it.ute.QAUTE.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -47,16 +50,18 @@ public class Question {
     private Department department;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "FieldID")
+    @JoinColumn(
+            name = "FieldID"
+    )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Field field;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false)
     private QuestionStatus status = QuestionStatus.Pending;
 
-    // === THÊM MỚI: Tải danh sách câu trả lời cùng lúc với câu hỏi ===
-    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
-    @OrderBy("dateAnswered ASC") // Sắp xếp câu trả lời theo thời gian
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OrderBy("dateAnswered ASC")
     private Set<Answer> answers;
 
     @Formula("(SELECT COUNT(*) FROM Answer a WHERE a.QuestionID = QuestionID)")
@@ -68,4 +73,10 @@ public class Question {
         Approved,
         Rejected
     }
+
+    @Column(name = "Likes", columnDefinition = "INT DEFAULT 0")
+    private int likes = 0;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<QuestionLike> questionLikes = new HashSet<>();
 }

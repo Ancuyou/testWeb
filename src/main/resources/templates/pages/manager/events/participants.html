@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{pages/manager/layout-manager :: layout(~{::content}, 'events')}">
+<th:block th:fragment="content">
+    <div class="py-4" th:object="${event}">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">
+                    <i class="fas fa-users text-primary me-2"></i>Chi tiết sự kiện
+                </h2>
+                <p class="text-muted mb-0" th:text="*{title}">Tiêu đề sự kiện</p>
+            </div>
+            <a th:href="@{/manager/events}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img th:src="*{banner != null ? banner : '/images/default-event.jpg'}" 
+                         class="img-fluid rounded-start w-100" 
+                         style="height: 300px; object-fit: cover;" 
+                         alt="Event Banner">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h3 class="card-title fw-bold" th:text="*{title}">Event Title</h3>
+                        <div class="d-flex align-items-center mb-3">
+                            <img th:src="*{consultant.profile.avatar != null ? consultant.profile.avatar : '/images/default-avatar.png'}" 
+                                 class="rounded-circle me-2" 
+                                 style="width: 40px; height: 40px; object-fit: cover;"
+                                 alt="Avatar">
+                            <div>
+                                <div class="fw-semibold" th:text="*{consultant.profile.fullName}">Consultant Name</div>
+                                <small class="text-muted" th:text="*{consultant.profile.account.email}">consultant@email.com</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                <strong>Bắt đầu:</strong>
+                                <span th:text="${#temporals.format(event.startTime, 'HH:mm, dd/MM/yyyy')}">Time</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <i class="fas fa-calendar-check text-primary me-2"></i>
+                                <strong>Kết thúc:</strong>
+                                <span th:text="${#temporals.format(event.endTime, 'HH:mm, dd/MM/yyyy')}">Time</span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <i class="fas fa-tag text-primary me-2"></i>
+                                <strong>Loại:</strong>
+                                <span class="badge bg-info" th:text="*{type}">Type</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <i class="fas fa-users text-primary me-2"></i>
+                                <strong>Đăng ký:</strong>
+                                <span th:text="*{currentParticipants}">0</span>
+                                <span th:if="*{maxParticipants != null}">
+                                    / <span th:text="*{maxParticipants}">0</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                             <div class="col-sm-12">
+                                <span th:if="*{mode.toString() == 'Online'}">
+                                    <i class="fas fa-video text-primary me-2"></i>
+                                    <strong>Online: </strong>
+                                    <a th:href="*{meetingLink}" target="_blank">Link meeting</a>
+                                </span>
+                                <span th:if="*{mode.toString() == 'Offline'}">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                    <strong>Địa điểm: </strong>
+                                    <span th:text="*{location}">Location</span>
+                                </span>
+                                <span th:if="*{mode.toString() == 'Hybrid'}">
+                                    <i class="fas fa-layer-group text-primary me-2"></i>
+                                    <strong>Hybrid: </strong>
+                                    <span th:text="*{location}">Location</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <strong>Mô tả:</strong>
+                            <p class="text-muted" style="white-space: pre-line;" th:text="*{description}">Description...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pt-3">
+                <h4 class="fw-bold mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Danh sách đăng ký 
+                    <span class="badge bg-primary rounded-pill" th:text="${#lists.size(participants)}">0</span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div th:if="${participants != null and !participants.isEmpty()}">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Người tham gia</th>
+                                    <th>Email</th>
+                                    <th>Thời gian ĐK</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="reg, iter : ${participants}">
+                                    <td th:text="${iter.count}">1</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img th:src="${reg.user.profile.avatar != null ? reg.user.profile.avatar : '/images/default-avatar.png'}" 
+                                                 class="rounded-circle me-2" 
+                                                 style="width: 30px; height: 30px; object-fit: cover;"
+                                                 alt="Avatar">
+                                            <span th:text="${reg.user.profile.fullName}">User Name</span>
+                                        </div>
+                                    </td>
+                                    <td th:text="${reg.user.email}">user@email.com</td>
+                                    <td th:text="${#temporals.format(reg.registeredAt, 'HH:mm dd/MM/yyyy')}">Date</td>
+                                    <td>
+                                        <span th:if="${reg.status.toString() == 'Registered'}" class="badge bg-primary">Đã đăng ký</span>
+                                        <span th:if="${reg.status.toString() == 'Confirmed'}" class="badge bg-info">Đã xác nhận</span>
+                                        <span th:if="${reg.status.toString() == 'Attended'}" class="badge bg-success">Đã tham dự</span>
+                                        <span th:if="${reg.status.toString() == 'Absent'}" class="badge bg-warning">Vắng mặt</span>
+                                        <span th:if="${reg.status.toString() == 'Cancelled'}" class="badge bg-secondary">Đã hủy</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div th:if="${participants == null or participants.isEmpty()}" class="text-center py-5">
+                    <i class="fas fa-user-slash fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Chưa có ai đăng ký sự kiện này</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+</html>

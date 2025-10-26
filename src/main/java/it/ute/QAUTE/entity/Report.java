@@ -1,17 +1,9 @@
 package it.ute.QAUTE.entity;
 
+import jakarta.persistence.*;
 import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 @Getter
@@ -25,18 +17,18 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-     // Loại nội dung bị báo cáo (VD: question, answer, comment, user profile)
-    @Column(nullable = false)
-    private String contentType;
-
-    @Column(nullable = false)
-    private Long contentId;
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "reason", nullable = false, length = 500)
     private ReportReason reason;
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "contentType")
+    private String contentType;
+
+    @Column(name = "contentId")
+    private Long contentId;
 
     @ManyToOne
     @JoinColumn(name = "reporter_id", nullable = false)
@@ -49,11 +41,19 @@ public class Report {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Transient
+    private Question question;
+
+    @Transient
+    private Answer answer;
+
+    @Transient
+    private Messages message;
+
     public Report() {
         this.createdAt = LocalDateTime.now();
         this.status = ReportStatus.PENDING;
     }
-
 
     public enum ReportReason {
         SPAM_ADS,              // Spam/Quảng cáo
@@ -65,9 +65,7 @@ public class Report {
     }
 
     public enum ReportStatus {
-        PENDING,   // Đang chờ xử lý
-        REVIEWED,  // Đã xem
-        APPROVED,  // Báo cáo hợp lệ
-        REJECTED   // Báo cáo sai
+        PENDING,
+        PROCESSED,
     }
 }

@@ -12,7 +12,9 @@ import org.springframework.stereotype.Repository;
 public interface NotificationRepository extends JpaRepository<Notification,Integer> {
     @Query("SELECT n FROM Notification n " +
             "JOIN FETCH n.sender s " +
-            "JOIN FETCH s.profile")
-    Page<Account> findAccountByUser(Account.Role role, Pageable pageable);
+            "JOIN FETCH s.profile " +
+            "WHERE s.accountID=:accountId")
+    Page<Notification> findNotificationsBySenderId(long accountId,
+                                                   Pageable pageable);
     Notification findByNotificationID(Long id);
 }

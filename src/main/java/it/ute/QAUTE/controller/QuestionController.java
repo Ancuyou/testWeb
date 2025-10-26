@@ -4,11 +4,8 @@ import it.ute.QAUTE.dto.FieldDTO;
 import it.ute.QAUTE.dto.HotTopicDTO;
 import it.ute.QAUTE.dto.QuestionDTO;
 import it.ute.QAUTE.entity.*;
-import it.ute.QAUTE.service.AccountService;
-import it.ute.QAUTE.service.AnswerService;
-import it.ute.QAUTE.service.ConsultantService;
-import it.ute.QAUTE.service.QuestionService;
-import it.ute.QAUTE.service.UserService;
+import it.ute.QAUTE.service.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,6 +25,8 @@ import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 public class QuestionController {
@@ -47,6 +46,8 @@ public class QuestionController {
     @Autowired
     private ConsultantService consultantService;
 
+    @Autowired
+    private QuestionLikeService questionLikeService;
 
     @GetMapping({"/user/questions"})
     public String showQuestionPage(
@@ -57,17 +58,29 @@ public class QuestionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) Integer highlightQuestionId,
             Model model,
-            Principal principal) {
+            Principal principal,
+            HttpServletRequest request) {
+
+        Pageable pageable = PageRequest.of(page, 2);
+        Page<Question> questionPage = questionService.searchAndFilterQuestions(
+                departmentId, fieldId, keyword, sortBy, pageable);
 
         if (principal != null) {
             String username = principal.getName();
             Account account = accountService.findUserByUsername(username);
             model.addAttribute("account", account);
-        }
 
-        Pageable pageable = PageRequest.of(page, 10); // 10 câu hỏi mỗi trang
-        Page<Question> questionPage = questionService.searchAndFilterQuestions(
-                departmentId, fieldId, keyword, sortBy, pageable);
+            if (account != null && account.getProfile() != null) {
+                User user = userService.findByProfileId(account.getProfile().getProfileID()).orElse(null);
+                if (user != null) {
+                    model.addAttribute("likedQuestions", questionPage.getContent().stream()
+                            .collect(Collectors.toMap(
+                                    Question::getQuestionID,
+                                    q -> questionLikeService.isLikedByUser(q.getQuestionID(), user)
+                            )));
+                }
+            }
+        }
 
         model.addAttribute("questionDTO", new QuestionDTO());
         model.addAttribute("questions", questionPage.getContent());
@@ -87,7 +100,11 @@ public class QuestionController {
         }
         List<HotTopicDTO> hotTopics = questionService.getTop5HotTopics();
         model.addAttribute("hotTopics", hotTopics);
-
+        String requestedWithHeader = request.getHeader("X-Requested-With");
+        if ("fetch".equals(requestedWithHeader)) {
+            // Nếu là yêu cầu AJAX, chỉ trả về fragment nội dung
+            return "pages/user/questions :: contentFragment";
+        }
         return "pages/user/questions";
     }
 
@@ -188,8 +205,7 @@ public class QuestionController {
         return "redirect:/user/questions";
     }
 
-
-    @PostMapping({"/consultant/questions/answer", "/user/questions/answer"})
+    @PostMapping({"/user/questions/answer"})
     public String handlePostAnswer(@RequestParam("questionId") Integer questionId,
                                    @RequestParam("content") String content,
                                    Principal principal,

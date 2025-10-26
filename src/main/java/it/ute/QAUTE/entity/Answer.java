@@ -24,6 +24,7 @@ public class Answer {
     @JoinColumn(name = "ConsultantID", nullable = false)
     private Consultant consultant;
 
+
     @Column(name = "Content", nullable = false, columnDefinition = "TEXT")
     private String content;
 

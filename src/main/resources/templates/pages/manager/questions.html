@@ -125,7 +125,9 @@
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-danger"
                                                 title="Xóa"
-                                                onclick="confirmDelete([[${q.questionID}]], '[[${q.title}]]')">
+                                                th:data-question-id="${q.questionID}"
+                                                th:data-question-title="${q.title}"
+                                                onclick="confirmDelete(this)">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -234,10 +236,15 @@
                     });
             }
 
+            function confirmDelete(button) {
+                const questionId = button.getAttribute('data-question-id');
+                const questionTitle = button.getAttribute('data-question-title');
 
-            function confirmDelete(questionId, questionTitle) {
                 document.getElementById('questionTitle').textContent = questionTitle;
-                document.getElementById('deleteForm').action = '/manager/questions/delete/' + questionId;
+
+                const form = document.getElementById('deleteForm');
+                form.action = '/qaute/manager/questions/delete/' + questionId;
+                form.method = 'post'; // Chỉnh method thành POST
 
                 const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
                 deleteModal.show();

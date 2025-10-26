@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Entity
 @Table(name="Profiles")
 @Getter
@@ -26,7 +28,8 @@ public class Profiles {
     private String phone;
     @Column(name="Avatar")
     private String avatar;
-
+    @Column(name="OnlineAt")
+    private Date onlineAt;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "profile", fetch = FetchType.LAZY)
     private Account account;
 
@@ -38,4 +41,7 @@ public class Profiles {
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "profile", fetch = FetchType.LAZY)
     private Admin admin;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "profile", fetch = FetchType.LAZY)
+    private Manager manager;
 }

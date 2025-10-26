@@ -11,7 +11,7 @@
 	<groupId>it.ute</groupId>
 	<artifactId>QAUTE</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>rar</packaging>
+	<packaging>jar</packaging>
 	<name>QAUTE</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>

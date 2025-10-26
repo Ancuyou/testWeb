@@ -66,7 +66,6 @@ public class ChatController {
             User user = profile.getUser();
             System.out.println("Profile ID: " + profile.getProfileID() + ", Full Name: " + profile.getFullName() + ", User: " + (user != null ? "exists" : "null"));
         }
-        
         List<UserDTO> results = chatUsers.stream()
             .map(profile -> {
                 User user = profile.getUser();

@@ -6,6 +6,7 @@ import it.ute.QAUTE.entity.NotificationReceiver;
 import it.ute.QAUTE.service.AuthenticationService;
 import it.ute.QAUTE.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,15 +24,18 @@ public class NotificationController {
     @Autowired
     private AuthenticationService authenticationService;
     @GetMapping("/user")
-    public String getNotificationsByAccount(HttpSession session, Model model, HttpServletRequest request)
+    public String getNotificationsByAccount(HttpSession session, Model model, HttpServletRequest request, HttpServletResponse response)
             throws ParseException, JOSEException {
-        int accountId = Math.toIntExact(authenticationService.getCurrentUserId(session));
+        Object tokenObj = session.getAttribute("ACCESS_TOKEN");
+        int accountId = Math.toIntExact(authenticationService.getCurrentUserId(tokenObj,request,response));
         List<NotificationReceiver> notifications = notificationService.findNotificationByAccountId(accountId);
         long unreadCount = notifications.stream()
                 .filter(n -> !n.isRead())
                 .count();
         model.addAttribute("notifications", notifications);
         model.addAttribute("unreadCount", unreadCount);
+        model.addAttribute("accountId", accountId);
+        System.out.println("accountId: "+accountId);
         return "fragments/userDropDown :: notificationItems";
     }
     @GetMapping("/detail")

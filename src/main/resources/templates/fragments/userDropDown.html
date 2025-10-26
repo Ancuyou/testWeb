@@ -133,6 +133,12 @@
                 <li class="nav-item">
                     <a class="nav-link fw-semibold" th:href="@{/consultant/history}">Lịch sử tư vấn</a>
                 </li>
+                <li>
+                    <a class="nav-link fw-semibold" th:href="@{/consultant/profile}">Hồ sơ cá nhân</a>
+                </li>
+                <li>
+                    <a class="nav-link fw-semibold" th:href="@{/consultant/events}">Sự kiện của tôi</a>
+                </li>
             </ul>
 
             <!-- User dropdown -->
@@ -143,6 +149,7 @@
 
 <!-- Fragment cho danh sách notification items -->
 <div th:fragment="notificationItems">
+    <input type="hidden" id="currentAccountId" th:value="${accountId}">
     <div th:if="${notifications.isEmpty()}" class="text-center py-4 text-muted">
         <i class="fas fa-bell-slash fs-3 mb-2"></i>
         <p class="mb-0">Không có thông báo</p>
@@ -237,73 +244,152 @@
     const USER_NOTI_URL   = /*[[@{/notifications/user}]]*/ '/notifications/user';
     const DETAIL_NOTI_URL = /*[[@{/notifications/detail}]]*/ '/notifications/detail';
     const WS_ENDPOINT     = /*[[@{/ws}]]*/ '/ws';
+
+    // ✅ ĐỔI const thành let để có thể update
+    let ACCOUNT_ID = 0;
+
     let __autoOpenLock = false;               // chốt chống mở lặp
     const AUTO_OPEN_COOLDOWN_MS = 10000;      // 10s
-    document.addEventListener('DOMContentLoaded', function() {
+
+    // ========== CHẠY NGAY KHI SCRIPT LOAD ==========
+    (function() {
+        console.log("🚀 Script loaded, initial accountId:", ACCOUNT_ID);
+
+        // Nếu DOM đã ready thì chạy luôn, nếu chưa thì đợi
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+
+    function init() {
+        console.log("🎯 Initializing notification system...");
+
+        // Setup notification dropdown
         const notificationDropdown = document.getElementById('notificationDropdown');
         if (notificationDropdown) {
+            console.log("✅ Found notification dropdown");
             notificationDropdown.addEventListener('click', function() {
                 const isOpen = this.parentElement.classList.contains('show');
-                if (!isOpen) loadNotifications();
+                if (!isOpen) {
+                    console.log("📂 Opening dropdown, loading notifications...");
+                    loadNotifications();
+                }
             });
             loadNotifications();
+        } else {
+            console.warn("⚠️ Notification dropdown not found");
         }
-        initRealtime(); // <<< thêm dòng này để bật realtime
-    });
+
+        // Khởi tạo STOMP
+        initRealtime();
+
+        // ⚠️ KHÔNG gọi startOnlineSocket() ở đây nữa
+        // Sẽ gọi sau khi có accountId từ loadNotifications()
+    }
+
     function maybeAutoOpenPriority() {
-        if (__autoOpenLock) return;
+        if (__autoOpenLock) {
+            console.log("🔒 Auto-open locked, skipping");
+            return;
+        }
         const container = document.getElementById('notificationList');
-        if (!container) return;
+        if (!container) {
+            console.warn("⚠️ Notification list container not found");
+            return;
+        }
 
         // tìm item chưa đọc & ưu tiên
         const priorityItem = container.querySelector('.notification-item.unread[data-priority="true"]');
         if (priorityItem) {
             const rid = priorityItem.getAttribute('data-receiver-id');
+            console.log("🔔 Found priority notification, auto-opening:", rid);
             __autoOpenLock = true;
-            showNotificationDetail(rid);          // mở modal chi tiết
-            setTimeout(() => { __autoOpenLock = false; }, AUTO_OPEN_COOLDOWN_MS);
+            showNotificationDetail(rid);
+            setTimeout(() => {
+                __autoOpenLock = false;
+                console.log("🔓 Auto-open lock released");
+            }, AUTO_OPEN_COOLDOWN_MS);
         }
     }
+
     function loadNotifications() {
+        console.log("📡 Loading notifications...");
         fetch(USER_NOTI_URL, {
             method: 'GET',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             credentials: 'same-origin'
         })
-            .then(r => r.text())
+            .then(r => {
+                console.log("📥 Notification response received:", r.status);
+                return r.text();
+            })
             .then(html => {
                 document.getElementById('notificationList').innerHTML = html;
+
+                // ✅ LẤY accountId TỪ HIDDEN INPUT
+                const hiddenInput = document.getElementById('currentAccountId');
+                if (hiddenInput) {
+                    const newAccountId = parseInt(hiddenInput.value) || 0;
+                    console.log("📌 Found accountId in hidden input:", newAccountId);
+
+                    // Nếu accountId hợp lệ và khác với giá trị hiện tại
+                    if (newAccountId > 0 && ACCOUNT_ID !== newAccountId) {
+                        ACCOUNT_ID = newAccountId;
+                        console.log("✅ Updated ACCOUNT_ID to:", ACCOUNT_ID);
+
+                        // Khởi tạo WebSocket lần đầu
+                        if (!window.__online_ws_started) {
+                            window.__online_ws_started = true;
+                            console.log("🚀 Starting Online WebSocket for the first time...");
+                            startOnlineSocket();
+                        }
+                    }
+                } else {
+                    console.warn("⚠️ Hidden input #currentAccountId not found in response");
+                }
+
                 const unreadCount = new DOMParser()
                     .parseFromString(html, 'text/html')
                     .querySelectorAll('.notification-item.unread').length;
+                console.log("📊 Unread count:", unreadCount);
                 updateNotificationBadge(unreadCount);
                 maybeAutoOpenPriority();
             })
-            .catch(() => {
+            .catch((error) => {
+                console.error("❌ Failed to load notifications:", error);
                 document.getElementById('notificationList').innerHTML =
                     '<div class="text-center py-3 text-danger">Không thể tải thông báo</div>';
             });
     }
 
     function updateNotificationBadge(count) {
+        console.log("🔢 Updating badge count to:", count);
         const badge = document.getElementById('notificationBadge');
         if (count > 0) {
             if (!badge) {
                 const bellIcon = document.querySelector('#notificationDropdown');
-                const newBadge = document.createElement('span');
-                newBadge.id = 'notificationBadge';
-                newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
-                newBadge.textContent = count;
-                bellIcon.appendChild(newBadge);
+                if (bellIcon) {
+                    const newBadge = document.createElement('span');
+                    newBadge.id = 'notificationBadge';
+                    newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    newBadge.textContent = count;
+                    bellIcon.appendChild(newBadge);
+                    console.log("✅ Badge created with count:", count);
+                }
             } else {
                 badge.textContent = count;
+                console.log("✅ Badge updated to:", count);
             }
         } else if (badge) {
             badge.remove();
+            console.log("🗑️ Badge removed (no unread)");
         }
     }
 
     function showNotificationDetail(receiverId) {
+        console.log("👁️ Opening notification detail:", receiverId);
         const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('notificationDropdown'));
         if (dropdown) dropdown.hide();
 
@@ -312,47 +398,134 @@
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             credentials: 'same-origin'
         })
-            .then(r => r.text())
+            .then(r => {
+                console.log("📥 Detail response received:", r.status);
+                return r.text();
+            })
             .then(html => {
                 document.getElementById('notificationModal')?.remove();
                 document.body.insertAdjacentHTML('beforeend', html);
                 const modalEl = document.getElementById('notificationModal');
                 new bootstrap.Modal(modalEl).show();
+                console.log("✅ Modal opened");
                 loadNotifications(); // BE đã mark read → refresh danh sách
-                modalEl.addEventListener('hidden.bs.modal', () => modalEl.remove());
+                modalEl.addEventListener('hidden.bs.modal', () => {
+                    modalEl.remove();
+                    console.log("🗑️ Modal removed");
+                });
             })
-            .catch(() => alert('Không thể tải chi tiết thông báo'));
+            .catch((error) => {
+                console.error("❌ Failed to load notification detail:", error);
+                alert('Không thể tải chi tiết thông báo');
+            });
         return false;
     }
 
     // ==== Realtime qua WebSocket/STOMP (theo username) ====
     function initRealtime() {
+        console.log("🔌 Initializing STOMP WebSocket...");
+
         // Tránh khởi tạo nhiều lần nếu fragment được include nhiều chỗ
-        if (window.__qaute_ws_inited) return;
+        if (window.__qaute_ws_inited) {
+            console.log("⚠️ STOMP already initialized");
+            return;
+        }
         window.__qaute_ws_inited = true;
 
         function connect() {
             if (!window.SockJS || !window.Stomp) {
-                console.warn('SockJS/STOMP chưa nạp. Kiểm tra <script> trong head.html');
+                console.error('❌ SockJS/STOMP chưa nạp. Kiểm tra <script> trong head.html');
                 return;
             }
+
+            console.log("🔗 Connecting to STOMP at:", WS_ENDPOINT);
             const sock = new SockJS(WS_ENDPOINT);
             const client = Stomp.over(sock);
             client.debug = null; // tắt log
 
             client.connect({}, function onConnect() {
+                console.log("✅ STOMP connected successfully");
                 window.__qaute_stomp = client;
+
                 // Server dùng convertAndSendToUser(username, "/queue/notifications", payload)
-                client.subscribe('/user/queue/notifications', function() {
+                client.subscribe('/user/queue/notifications', function(message) {
+                    console.log("🔔 New notification received via STOMP:", message);
                     // Có thông báo mới → refresh list + badge
                     loadNotifications();
                     maybeAutoOpenPriority();
                 });
-            }, function onError() {
+                console.log("✅ Subscribed to /user/queue/notifications");
+            }, function onError(error) {
+                console.error("❌ STOMP connection error:", error);
+                console.log("🔄 Reconnecting in 3 seconds...");
                 setTimeout(connect, 3000); // auto-reconnect đơn giản
             });
         }
         connect();
+    }
+
+    // ==== WebSocket cho Online Status ====
+    function startOnlineSocket() {
+        console.log("🔌 Starting Online Status WebSocket...");
+        console.log("🆔 Account ID:", ACCOUNT_ID);
+
+        if (!ACCOUNT_ID || ACCOUNT_ID === 0) {
+            console.warn("⚠️ Không có accountId hợp lệ, bỏ qua ping online");
+            return;
+        }
+
+        // Lấy context path từ Thymeleaf (nếu có)
+        const contextPath = /*[[@{/}]]*/ '/';
+
+        // Xác định URL WebSocket (auto chọn ws:// hoặc wss://)
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const wsUrl = `${wsProtocol}${window.location.host}${contextPath}realtime/online?id=${ACCOUNT_ID}`;
+
+        console.log("📍 WebSocket URL:", wsUrl);
+        console.log("🔗 Connecting to Online Status WebSocket...");
+
+        const ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            console.log("✅ Online WS connected successfully");
+            // Gửi ping ngay khi kết nối
+            ws.send("PING");
+            console.log("💓 Initial PING sent");
+        };
+
+        ws.onclose = (event) => {
+            console.log("❌ Online WS closed");
+            console.log("   Code:", event.code);
+            console.log("   Reason:", event.reason || "No reason provided");
+            console.log("   Clean:", event.wasClean);
+        };
+
+        ws.onerror = (error) => {
+            console.error("⚠️ WS Error:", error);
+            console.error("   ReadyState:", ws.readyState);
+        };
+
+        ws.onmessage = (message) => {
+            console.log("📨 Received message from server:", message.data);
+        };
+
+        // Gửi ping mỗi 30 giây
+        const pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send("PING");
+                console.debug("💓 PING sent for user", ACCOUNT_ID);
+            } else {
+                console.warn("⚠️ Cannot send PING, WebSocket state:", ws.readyState);
+                console.warn("   States: 0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED");
+            }
+        }, 30000);
+
+        // Cleanup khi đóng trang
+        window.addEventListener('beforeunload', () => {
+            console.log("👋 Page unloading, cleaning up WebSocket...");
+            clearInterval(pingInterval);
+            ws.close();
+        });
     }
 </script>
 

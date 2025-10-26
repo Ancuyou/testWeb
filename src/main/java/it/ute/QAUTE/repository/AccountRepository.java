@@ -63,6 +63,8 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     List<Account> findByRoleExcludeAdmin(Account.Role role);
     @Query("SELECT a FROM Account a WHERE a.role != 'Admin'")
     List<Account> findAllExcludeAdmin();
+    @Query("SELECT a FROM Account a WHERE a.role ='User' OR a.role ='Consultant'")
+    List<Account> findUserAndConsultant();
     @Query("SELECT a FROM Account a WHERE a.profile.profileID = :profileId")
     Account findByProfile_ProfileID(@Param("profileId") Integer profileId);
 

@@ -5,9 +5,11 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top manager-navbar">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" href="/manager/home">
-            <i class="fas fa-crown me-2 text-warning"></i>
-            <span>QAUTE Manager</span>
+        <a class="navbar-brand fw-bold fs-4 d-flex align-items-center brand-logo" href="/manager/home">
+            <div class="brand-text">
+                <span class="brand-name"> QAUTE</span>
+                <span class="brand-subtitle">Manager Portal</span>
+            </div>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -58,9 +60,37 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" th:classappend="${active=='badcontents'}? 'active'" th:href="@{/manager/bad-contents}">
-                            <i class="fas fa-ban me-2"></i>Quản lý nội dung xấu
+                        <a class="nav-link d-flex justify-content-between align-items-center"
+                           data-bs-toggle="collapse"
+                           href="#collapseContents"
+                           role="button"
+                           th:classappend="${(active == 'bad-contents' || active == 'reports-user') ? 'active' : 'collapsed'}"
+                           th:aria-expanded="${(active == 'bad-contents' || active == 'reports-user') ? 'true' : 'false'}"
+                           aria-controls="collapseContents">
+                            <span class="text-nowrap"><i class="fas fa-ban me-2"></i>Quản lý nội dung xấu</span>
+                            <i class="fas fa-chevron-right small"></i>
                         </a>
+
+                        <div class="collapse ps-3" id="collapseContents"
+                             th:classappend="${(active == 'bad-contents' || active == 'reports-user') ? 'show' : ''}">
+
+                            <ul class="nav flex-column ms-2 border-start border-2 border-light-subtle ps-2">
+
+                                <li>
+                                    <a class="nav-link py-1"
+                                       th:href="@{/manager/bad-contents}">
+                                        <i class="fas fa-robot me-2"></i>Lọc từ hệ thống (AI)
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="nav-link py-1"
+                                       th:href="@{/manager/user-reports}">
+                                        <i class="fas fa-users me-2"></i>Báo cáo từ người dùng
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link d-flex justify-content-between align-items-center"
@@ -73,7 +103,6 @@
                             <span><i class="fas fa-chart-bar me-2"></i>Báo cáo thống kê</span>
                             <i class="fas fa-chevron-right small"></i>
                         </a>
-
                         <div class="collapse ps-3" id="collapseReports" th:classappend="${active == 'report' ? 'show' : ''}">
                             <ul class="nav flex-column ms-2 border-start border-2 border-light-subtle ps-2">
                                 <li><a class="nav-link py-1" th:href="@{/manager/reports/questions}"><i class="fas fa-question-circle me-2"></i>Câu hỏi</a></li>
@@ -84,8 +113,18 @@
                         </div>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" th:classappend="${active=='notifications'}? 'active'" th:href="@{/manager/notifications}">
+                            <i class="fas fa-bell me-2"></i>Quản lý thông báo
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" th:classappend="${active=='faq'}? 'active'" th:href="@{/manager/faq}">
                             <i class="fas fa-book-open me-2"></i>Thư viện FAQ
+                        </a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" th:classappend="${active=='events'}? 'active'" th:href="@{/manager/events}">
+                            <i class="fas fa-calendar-alt me-2"></i>Quản lý sự kiện
                         </a>
                     </li>
                 </ul>

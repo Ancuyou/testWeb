@@ -1,83 +1,179 @@
 <th:block th:replace="~{pages/manager/layout-manager :: layout(~{::consultants_content}, 'report')}">
     <th:block th:fragment="consultants_content">
 
-        <div class="container-fluid py-4">
+        <div class="container-fluid py-3">
+            <!-- Tiêu đề trang -->
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-user-tie me-2 text-primary"></i>Báo cáo Hiệu suất Tư vấn viên
+                </h2>
+            </div>
 
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <!-- Thông báo cảnh báo -->
+            <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
                 <div>
-                    <h2 class="h3 mb-1 text-dark fw-bold">
-                        <i class="fas fa-user-tie text-primary me-2"></i> Báo cáo Hiệu suất Tư vấn viên
-                    </h2>
-                    <p class="text-muted small mb-0">Thống kê và đánh giá năng suất tư vấn theo thời gian</p>
+                    <strong>Lưu ý:</strong> Khi không chọn <strong>từ ngày</strong> và <strong>đến ngày</strong>
+                    thì mặc định khi nhấn <strong>Lọc</strong> sẽ hiển thị báo cáo trong 30 ngày gần nhất.
                 </div>
             </div>
 
-            <!-- Bộ lọc thời gian -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <form th:action="@{/manager/reports/consultants}" method="get" class="row g-3 align-items-end">
-                        <div class="col-md-5">
-                            <label class="form-label fw-semibold text-dark"><i class="fas fa-calendar-day me-1"></i> Từ ngày</label>
-                            <input type="datetime-local" name="startDate" class="form-control" th:value="${startDate}">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-semibold text-dark"><i class="fas fa-calendar-check me-1"></i> Đến ngày</label>
-                            <input type="datetime-local" name="endDate" class="form-control" th:value="${endDate}">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100 fw-semibold">
-                                <i class="fas fa-filter me-2"></i>Lọc
-                            </button>
-                        </div>
-                    </form>
+            <!-- Bộ lọc tìm kiếm -->
+            <form th:action="@{/manager/reports/consultants}" method="get" class="row gy-2 gx-3 align-items-end mb-4">
+                <div class="col-md-5">
+                    <label for="startDate" class="form-label fw-semibold">
+                        <i class="fas fa-calendar-day me-1"></i>Từ ngày giờ
+                    </label>
+                    <input type="datetime-local" id="startDate" name="startDate"
+                           class="form-control" th:value="${startDate}">
                 </div>
-            </div>
+                <div class="col-md-5">
+                    <label for="endDate" class="form-label fw-semibold">
+                        <i class="fas fa-calendar-check me-1"></i>Đến ngày giờ
+                    </label>
+                    <input type="datetime-local" id="endDate" name="endDate"
+                           class="form-control" th:value="${endDate}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold invisible">Hành động</label>
+                    <button type="submit" class="btn btn-primary fw-semibold px-3 w-100">
+                        <i class="fas fa-search me-1"></i> Lọc kết quả
+                    </button>
+                </div>
+            </form>
 
             <!-- Tổng quan -->
-            <div class="row g-4 mb-4">
+            <div class="row g-3 mb-4">
                 <div class="col-lg-6">
-                    <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);">
+                    <div class="card border-0 shadow-sm h-100"
+                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <div class="card-body text-white p-4">
-                            <h6 class="text-white-50 text-uppercase fw-semibold mb-2">Tổng số tư vấn viên</h6>
-                            <h2 class="display-4 fw-bold mb-0" th:text="${totalConsultants}">0</h2>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-semibold mb-2">
+                                        <i class="fas fa-users me-2"></i>Tổng số tư vấn viên
+                                    </h6>
+                                    <h2 class="display-4 fw-bold mb-0" th:text="${totalConsultants}">0</h2>
+                                </div>
+                                <div class="text-white-50" style="font-size: 4rem; opacity: 0.3;">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100"
+                         style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="card-body text-white p-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 text-uppercase fw-semibold mb-2">
+                                        <i class="fas fa-comments me-2"></i>Tổng câu trả lời
+                                    </h6>
+                                    <h2 class="display-4 fw-bold mb-0" th:text="${totalAnswers ?: 0}">0</h2>
+                                </div>
+                                <div class="text-white-50" style="font-size: 4rem; opacity: 0.3;">
+                                    <i class="fas fa-reply-all"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Bảng dữ liệu -->
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0 pt-4 pb-3">
-                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-table me-2 text-primary"></i>Chi tiết tư vấn viên</h5>
-                </div>
-                <div class="card-body table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                        <tr class="fw-semibold text-dark">
-                            <th>Họ tên</th>
-                            <th class="text-center">Câu trả lời</th>
-                            <th class="text-center">Lĩnh vực</th>
-                            <th class="text-center">Kinh nghiệm (năm)</th>
-                            <th class="text-center">Hiệu suất (%)</th>
-                            <th class="text-center">Đúng hạn (%)</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="c : ${reports}">
-                            <td th:text="${c.fullName}"></td>
-                            <td class="text-center" th:text="${c.totalAnswers}"></td>
-                            <td class="text-center" th:text="${c.totalFields}"></td>
-                            <td class="text-center" th:text="${c.experienceYears}"></td>
-                            <td class="text-center">
-                                <span th:text="${#numbers.formatDecimal(c.performanceRate, 1, 1)} + '%'"></span>
-                            </td>
-                            <td class="text-center">
-                                <span th:text="${#numbers.formatDecimal(c.onTimeRate, 1, 1)} + '%'"></span>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+            <!-- Bảng danh sách tư vấn viên -->
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-primary">
+                            <tr>
+                                <th style="width: 20%;">Họ tên</th>
+                                <th class="text-center" style="width: 13%;">Câu trả lời</th>
+                                <th class="text-center" style="width: 13%;">Lĩnh vực</th>
+                                <th class="text-center" style="width: 15%;">Kinh nghiệm (năm)</th>
+                                <th class="text-center" style="width: 13%;">Hiệu suất (%)</th>
+                                <th class="text-center" style="width: 13%;">Đúng hạn (%)</th>
+                                <th class="text-center" style="width: 13%;">Xếp hạng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c, iterStat : ${reports}">
+                                <!-- Họ tên -->
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold" th:text="${c.fullName}"></span>
+                                    </div>
+                                </td>
+
+                                <!-- Câu trả lời -->
+                                <td class="text-center">
+                                    <span class="badge bg-info" th:text="${c.totalAnswers}">0</span>
+                                </td>
+
+                                <!-- Lĩnh vực -->
+                                <td class="text-center">
+                                    <span class="badge bg-secondary" th:text="${c.totalFields}">0</span>
+                                </td>
+
+                                <!-- Kinh nghiệm -->
+                                <td class="text-center">
+                                    <span class="badge bg-warning text-dark" th:text="${c.experienceYears}">0</span>
+                                </td>
+
+                                <!-- Hiệu suất -->
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="progress" style="width: 80px; height: 20px;">
+                                            <div class="progress-bar"
+                                                 th:classappend="${c.performanceRate >= 80 ? 'bg-success' :
+                                                                 (c.performanceRate >= 50 ? 'bg-warning' : 'bg-danger')}"
+                                                 th:style="'width: ' + ${c.performanceRate} + '%'"
+                                                 th:text="${#numbers.formatDecimal(c.performanceRate, 1, 1)} + '%'">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Đúng hạn -->
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="progress" style="width: 80px; height: 20px;">
+                                            <div class="progress-bar"
+                                                 th:classappend="${c.onTimeRate >= 80 ? 'bg-success' :
+                                                                 (c.onTimeRate >= 50 ? 'bg-warning' : 'bg-danger')}"
+                                                 th:style="'width: ' + ${c.onTimeRate} + '%'"
+                                                 th:text="${#numbers.formatDecimal(c.onTimeRate, 1, 1)} + '%'">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Xếp hạng -->
+                                <td class="text-center">
+                                    <span th:if="${iterStat.index == 0}" class="badge bg-warning text-dark fs-6">
+                                        <i class="fas fa-trophy me-1"></i>Top 1
+                                    </span>
+                                    <span th:if="${iterStat.index == 1}" class="badge bg-secondary fs-6">
+                                        <i class="fas fa-medal me-1"></i>Top 2
+                                    </span>
+                                    <span th:if="${iterStat.index == 2}" class="badge bg-danger fs-6">
+                                        <i class="fas fa-award me-1"></i>Top 3
+                                    </span>
+                                    <span th:if="${iterStat.index > 2}" class="text-muted" th:text="'#' + ${iterStat.index + 1}"></span>
+                                </td>
+                            </tr>
+
+                            <!-- Trường hợp không có dữ liệu -->
+                            <tr th:if="${#lists.isEmpty(reports)}">
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    Không có dữ liệu tư vấn viên trong khoảng thời gian này.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

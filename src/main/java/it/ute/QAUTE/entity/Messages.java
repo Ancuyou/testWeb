@@ -50,6 +50,7 @@ public class Messages {
     @ManyToOne
     @JoinColumn(name = "ReceiverID", referencedColumnName = "ProfileID", insertable = false, updatable = false)
     private Profiles receiver;
+
     
     @Column(name = "is_recalled")
     private Boolean isRecalled = false;

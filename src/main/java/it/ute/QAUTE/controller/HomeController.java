@@ -6,6 +6,8 @@ import it.ute.QAUTE.dto.ConsultantDTO;
 import it.ute.QAUTE.dto.HotTopicDTO;
 import it.ute.QAUTE.entity.*;
 import it.ute.QAUTE.service.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -195,8 +197,9 @@ public class HomeController {
                          @RequestParam(required = false) String studentCode,
                          @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
                          @RequestParam(value = "newPassword", required = false) String newPassword,
-                         HttpSession session) throws ParseException, JOSEException {
-        int id = Math.toIntExact(authenticationService.getCurrentUserId(session));
+                         HttpSession session, HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+        Object tokenObj = session.getAttribute("ACCESS_TOKEN");
+        int id = Math.toIntExact(authenticationService.getCurrentUserId(tokenObj,request,response));
         System.out.println(id);
         Account account = accountService.findById(id);
         if(newPassword !=null &&!newPassword.isBlank()) account.setPassword(authenticationService.hashed(newPassword));

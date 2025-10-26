@@ -88,4 +88,5 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
 }

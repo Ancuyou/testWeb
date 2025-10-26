@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{fragments/head :: head('Tạo Sự kiện - QAUTE')}"></th:block>
+<body>
+<th:block th:replace="~{fragments/consultant/consultant-navbar :: consultant-navbar}"></th:block>
+
+<div class="container-fluid" style="margin-top: 80px;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Page Header -->
+            <div class="mb-4">
+                <div class="d-flex align-items-center">
+                    <a th:href="@{/consultant/events}" class="btn btn-outline-secondary me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold mb-1">
+                            <i class="fas fa-plus-circle text-primary me-2"></i>Tạo sự kiện mới
+                        </h2>
+                        <p class="text-muted mb-0">Điền thông tin để tạo sự kiện hoặc workshop</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form th:action="@{/consultant/events/create}" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Main Content -->
+                    <div class="col-lg-8">
+                        <!-- Basic Information -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-info-circle text-primary me-2"></i>Thông tin cơ bản
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Tiêu đề sự kiện <span class="text-danger">*</span></label>
+                                    <input type="text" name="title" class="form-control" required 
+                                           placeholder="VD: Workshop Định hướng nghề nghiệp 2025">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
+                                    <textarea name="description" class="form-control" rows="5" required
+                                              placeholder="Mô tả nội dung, lợi ích và những gì người tham gia sẽ học được..."></textarea>
+                                    <small class="text-muted">Mô tả càng chi tiết càng thu hút người tham gia</small>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Loại sự kiện <span class="text-danger">*</span></label>
+                                        <select name="type" class="form-select" required>
+                                            <option value="">-- Chọn loại --</option>
+                                            <option th:each="type : ${eventTypes}" 
+                                                    th:value="${type}" 
+                                                    th:text="${type}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Hình thức <span class="text-danger">*</span></label>
+                                        <select name="mode" class="form-select" id="eventMode" required>
+                                            <option value="">-- Chọn hình thức --</option>
+                                            <option th:each="mode : ${eventModes}" 
+                                                    th:value="${mode}" 
+                                                    th:text="${mode}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Khoa/Phòng ban</label>
+                                        <select name="departmentId" class="form-select">
+                                            <option value="">-- Tất cả khoa --</option>
+                                            <option th:each="dept : ${departments}" 
+                                                    th:value="${dept.departmentID}" 
+                                                    th:text="${dept.departmentName}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Lĩnh vực</label>
+                                        <select name="fieldId" class="form-select">
+                                            <option value="">-- Chọn lĩnh vực --</option>
+                                            <option th:each="field : ${fields}" 
+                                                    th:value="${field.fieldID}" 
+                                                    th:text="${field.fieldName}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time & Location -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-calendar-alt text-primary me-2"></i>Thời gian & Địa điểm
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Thời gian bắt đầu <span class="text-danger">*</span></label>
+                                        <input type="datetime-local" name="startTime" class="form-control" required>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Thời gian kết thúc <span class="text-danger">*</span></label>
+                                        <input type="datetime-local" name="endTime" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" id="locationField">
+                                    <label class="form-label fw-semibold">Địa điểm <span class="text-danger">*</span></label>
+                                    <input type="text" name="location" class="form-control" 
+                                           placeholder="VD: Phòng A.101, Tòa nhà A">
+                                    <small class="text-muted">Địa chỉ cụ thể nơi diễn ra sự kiện</small>
+                                </div>
+
+                                <div class="mb-3" id="meetingLinkField" style="display: none;">
+                                    <label class="form-label fw-semibold">Link họp online <span class="text-danger">*</span></label>
+                                    <input type="url" name="meetingLink" class="form-control" 
+                                           placeholder="https://meet.google.com/xxx-xxxx-xxx">
+                                    <small class="text-muted">Link Google Meet, Zoom, hoặc nền tảng khác</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4">
+                        <!-- Banner Upload -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-image text-primary me-2"></i>Banner sự kiện
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <img id="bannerPreview" src="/images/default-event.jpg" 
+                                         class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
+                                </div>
+                                <input type="file" name="bannerFile" id="bannerFile" 
+                                       class="form-control" accept="image/*">
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle"></i> Kích thước đề xuất: 1200x630px
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Participants -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-users text-primary me-2"></i>Số lượng tham gia
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Số lượng tối đa</label>
+                                    <input type="number" name="maxParticipants" class="form-control" 
+                                           min="1" placeholder="VD: 50">
+                                    <small class="text-muted">Để trống nếu không giới hạn</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <button type="submit" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-check-circle me-2"></i>Tạo sự kiện
+                                </button>
+                                <a th:href="@{/consultant/events}" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-times me-2"></i>Hủy bỏ
+                                </a>
+                                <hr>
+                                <div class="alert alert-info mb-0 small">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Sự kiện sẽ được gửi đến Manager để phê duyệt trước khi công bố
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview banner
+document.getElementById('bannerFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('bannerPreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Toggle location/meeting link based on mode
+document.getElementById('eventMode').addEventListener('change', function() {
+    const mode = this.value;
+    const locationField = document.getElementById('locationField');
+    const meetingLinkField = document.getElementById('meetingLinkField');
+    
+    if (mode === 'Online') {
+        locationField.style.display = 'none';
+        meetingLinkField.style.display = 'block';
+        locationField.querySelector('input').removeAttribute('required');
+        meetingLinkField.querySelector('input').setAttribute('required', 'required');
+    } else if (mode === 'Offline') {
+        locationField.style.display = 'block';
+        meetingLinkField.style.display = 'none';
+        locationField.querySelector('input').setAttribute('required', 'required');
+        meetingLinkField.querySelector('input').removeAttribute('required');
+    } else if (mode === 'Hybrid') {
+        locationField.style.display = 'block';
+        meetingLinkField.style.display = 'block';
+        locationField.querySelector('input').setAttribute('required', 'required');
+        meetingLinkField.querySelector('input').setAttribute('required', 'required');
+    }
+});
+</script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/toast :: toast}"></div>
+</body>
+</html>

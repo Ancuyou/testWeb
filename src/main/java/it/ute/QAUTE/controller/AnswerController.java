@@ -5,6 +5,8 @@ import it.ute.QAUTE.entity.Answer;
 import it.ute.QAUTE.entity.Consultant;
 import it.ute.QAUTE.entity.Question;
 import it.ute.QAUTE.service.ConsultantService;
+import it.ute.QAUTE.service.NotificationService;
+import it.ute.QAUTE.service.QuestionService;
 import it.ute.QAUTE.service.AccountService;
 import it.ute.QAUTE.service.AnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,13 @@ public class AnswerController {
     @Autowired
     private ConsultantService consultantService;
 
-    @PostMapping("/questions/answer")
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private QuestionService questionService;
+
+     @PostMapping("/questions/answer")
     public String handlePostAnswer(@RequestParam("questionId") Integer questionId,
                                    @RequestParam("content") String content,
                                    Principal principal,
@@ -43,7 +51,7 @@ public class AnswerController {
         String username = principal.getName();
         Account account = accountService.findUserByUsername(username);
 
-        // Ensure the user is a consultant
+       
         if (account.getRole() != Account.Role.Consultant) {
             redirectAttributes.addFlashAttribute("errorMessage", "Chỉ có tư vấn viên mới có thể trả lời.");
             return "redirect:/consultant/questions";
@@ -52,16 +60,38 @@ public class AnswerController {
         Consultant consultant = consultantService.findByProfileId(account.getProfile().getProfileID())
                 .orElseThrow(() -> new IllegalStateException("Không tìm thấy thông tin tư vấn viên."));
 
-        Answer answer = new Answer();
-        Question question = new Question();
-        question.setQuestionID(questionId);
 
+        Question question = questionService.findById(questionId);
+        if(question == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Câu hỏi không tồn tại.");
+            return "redirect:/consultant/questions";
+        }
+
+        Answer answer = new Answer();
         answer.setQuestion(question);
         answer.setConsultant(consultant);
         answer.setContent(content);
         answer.setDateAnswered(LocalDateTime.now());
 
         answerService.saveAnswer(answer);
+        System.out.println("Question ID: " + questionId);
+
+        String notificationTitle = "Câu hỏi của bạn đã được trả lời";
+        String notificationContent = String.format(
+            "Câu hỏi '%s' của bạn đã được tư vấn viên %s trả lời.",
+            question.getTitle() != null ? question.getTitle() : "câu hỏi",
+            account.getProfile().getFullName()
+        );
+
+        System.out.println(notificationContent + "  notificationContent 123");
+        
+        notificationService.createNotificationForSpecificUser(
+            account, 
+            question.getUser().getProfile().getAccount(), 
+            notificationTitle,
+            notificationContent,
+            true 
+        );
 
         redirectAttributes.addFlashAttribute("successMessage", "Câu trả lời của bạn đã được gửi thành công!");
         return "redirect:/consultant/questions";

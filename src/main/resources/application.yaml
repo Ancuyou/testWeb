@@ -25,6 +25,14 @@ spring:
     properties:
       hibernate:
         physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  task:
+    scheduling:
+      pool:
+        size: 5
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
 
   mail:
       host: smtp.gmail.com
@@ -65,3 +73,21 @@ cloudinary:
   cloud_name: dob8vleac
   api_key: 428778766855443
   api_secret: iNu_qDEZsruYl8FvZzP0RwjjcqU
+
+event:
+  registration:
+    cancel:
+      hours:
+        before: 24
+  reminder:
+    hours:
+      before: 24
+    minutes:
+      before: 15
+  max:
+    participants:
+      default: 50
+  duration:
+    min:
+      minutes: 30
+

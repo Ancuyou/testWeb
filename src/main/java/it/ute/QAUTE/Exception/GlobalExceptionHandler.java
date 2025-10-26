@@ -1,4 +1,4 @@
-package it.ute.QAUTE.Exception;
+package it.ute.QAUTE.exception;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

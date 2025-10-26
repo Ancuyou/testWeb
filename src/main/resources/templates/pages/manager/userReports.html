@@ -1,0 +1,411 @@
+<th:block th:replace="~{pages/manager/layout-manager :: layout(~{::report_contents}, 'bad-contents')}">
+    <th:block th:fragment="report_contents">
+
+        <div class="container-fluid py-3">
+            <!-- Tiêu đề trang -->
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-flag me-2 text-warning"></i>Xử lý báo cáo nội dung xấu từ người dùng
+                </h2>
+                <span class="badge bg-danger fs-6" th:if="${pendingCount > 0}">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    <span th:text="${pendingCount}">0</span> đang chờ xử lý
+                </span>
+            </div>
+
+            <!-- Thông báo cảnh báo -->
+            <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
+                <div>
+                    <strong>Lưu ý:</strong> Khi <strong>APPROVED</strong>, nội dung gốc sẽ bị xử lý (ví dụ: Question_Status: Rejected/ Answer bị xóa khỏi hệ thống).
+                    Khi <strong>REJECTED</strong>, chỉ trạng thái báo cáo thay đổi (ví dụ: REPORT_Status: Approved).
+                </div>
+            </div>
+
+            <!-- Bộ lọc tìm kiếm -->
+            <form method="get" class="row gy-2 gx-3 align-items-end mb-4">
+                <div class="col-md-3">
+                    <label for="startDate" class="form-label fw-semibold">
+                        <i class="fas fa-calendar-day me-1"></i>Từ ngày giờ
+                    </label>
+                    <input type="datetime-local" id="startDate" name="startDate"
+                           class="form-control" th:value="${startDate}">
+                </div>
+                <div class="col-md-3">
+                    <label for="endDate" class="form-label fw-semibold">
+                        <i class="fas fa-calendar-check me-1"></i>Đến ngày giờ
+                    </label>
+                    <input type="datetime-local" id="endDate" name="endDate"
+                           class="form-control" th:value="${endDate}">
+                </div>
+                <div class="col-md-2">
+                    <label for="contentType" class="form-label fw-semibold">
+                        <i class="fas fa-layer-group me-1"></i>Loại nội dung
+                    </label>
+                    <select id="contentType" name="contentType" class="form-select">
+                        <option value="">-- Tất cả nội dung --</option>
+                        <option value="question" th:selected="${contentType == 'question'}">Câu hỏi</option>
+                        <option value="answer" th:selected="${contentType == 'answer'}">Câu trả lời</option>
+                        <option value="messages" th:selected="${contentType == 'messages'}">Tin nhắn</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="reason" class="form-label fw-semibold">
+                        <i class="fas fa-tags me-1"></i>Lý do
+                    </label>
+                    <select id="reason" name="reason" class="form-select">
+                        <option value="">-- Tất cả lý do --</option>
+                        <option value="SPAM_ADS" th:selected="${reason == T(it.ute.QAUTE.entity.Report.ReportReason).SPAM_ADS}">Spam/Quảng cáo</option>
+                        <option value="HATEFUL_LANGUAGE" th:selected="${reason == T(it.ute.QAUTE.entity.Report.ReportReason).HATEFUL_LANGUAGE}">Ngôn từ thù hận</option>
+                        <option value="ADULT_CONTENT" th:selected="${reason == T(it.ute.QAUTE.entity.Report.ReportReason).ADULT_CONTENT}">Nội dung 18+</option>
+                        <option value="MISINFORMATION" th:selected="${reason == T(it.ute.QAUTE.entity.Report.ReportReason).MISINFORMATION}">Thông tin sai lệch</option>
+                        <option value="HARASSMENT" th:selected="${reason == T(it.ute.QAUTE.entity.Report.ReportReason).HARASSMENT}">Quấy rối</option>
+                        <option value="OTHER" th:selected="${reason == T(it.ute.QAUTE.entity.Report.ReportReason).OTHER}">Khác</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label fw-semibold">
+                        <i class="fas fa-filter me-1"></i>Trạng thái
+                    </label>
+                    <select id="status" name="status" class="form-select">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="PENDING" th:selected="${status == T(it.ute.QAUTE.entity.Report.ReportStatus).PENDING}">Chờ xử lý</option>
+                        <option value="PROCESSED" th:selected="${status == T(it.ute.QAUTE.entity.Report.ReportStatus).PROCESSED}">Đã xử lý</option>
+                    </select>
+                </div>
+                <div class="col-12 d-flex gap-2 justify-content-end">
+                    <button type="submit" class="btn btn-primary fw-semibold px-4">
+                        <i class="fas fa-search me-1"></i> Lọc kết quả
+                    </button>
+                </div>
+            </form>
+
+            <!-- Bảng danh sách báo cáo -->
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-primary">
+                            <tr>
+                                <th class="text-center" style="width: 5%;">ID</th>
+                                <th class="text-center" style="width: 12%;">Loại nội dung</th>
+                                <th style="width: 15%;">Lý do báo cáo</th>
+                                <th style="width: 20%;">Mô tả</th>
+                                <th class="text-center" style="width: 12%;">Thời gian</th>
+                                <th class="text-center" style="width: 10%;">Trạng thái</th>
+                                <th class="text-center" style="width: 14%;">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="report : ${reportPage.content}"
+                                th:classappend="${report.status.name() == 'PENDING'} ? 'table-warning' : ''">
+
+                                <!-- ID -->
+                                <td class="text-center" th:text="${report.id}"></td>
+
+                                <!-- Loại nội dung -->
+                                <td class="text-center">
+                                    <span class="badge"
+                                          th:classappend="${report.contentType == 'question' ? 'bg-primary' :
+                                                          (report.contentType == 'answer' ? 'bg-info' : 'bg-secondary')}"
+                                          th:text="${report.contentType == 'question' ? 'QUESTION' :
+                                                   (report.contentType == 'answer' ? 'ANSWER' : 'MESSAGES')}">
+                                    </span>
+                                </td>
+
+                                <!-- Lý do báo cáo -->
+                                <td>
+                                    <span class="badge bg-dark"
+                                          th:text="${report.reason.name() == 'SPAM_ADS' ? 'Spam/Quảng cáo' :
+                                                   (report.reason.name() == 'HATEFUL_LANGUAGE' ? 'Ngôn từ thù hận' :
+                                                   (report.reason.name() == 'ADULT_CONTENT' ? 'Nội dung 18+' :
+                                                   (report.reason.name() == 'MISINFORMATION' ? 'Thông tin sai lệch' :
+                                                   (report.reason.name() == 'HARASSMENT' ? 'Quấy rối' : 'Khác'))))}">
+                                    </span>
+                                </td>
+
+                                <!-- Mô tả -->
+                                <td style="max-width: 250px;">
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        <span th:text="${report.description}"></span>
+                                    </div>
+                                    <button type="button"
+                                            class="btn btn-link text-primary p-0 mt-1"
+                                            style="font-size: 12px;"
+                                            data-bs-toggle="modal"
+                                            th:data-bs-target="'#viewReportModal-' + ${report.id}">
+                                        <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                    </button>
+                                </td>
+
+                                <!-- Thời gian -->
+                                <td class="text-center" th:text="${#temporals.format(report.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+
+                                <!-- Trạng thái -->
+                                <td class="text-center">
+                                    <span class="badge"
+                                          th:classappend="${report.status.name() == 'PENDING' ? ' bg-warning text-dark' : ' bg-success'}"
+                                          th:text="${report.status.name() == 'PENDING' ? 'Chờ xử lý' : 'Đã xử lý'}">
+                                    </span>
+                                </td>
+
+                                <!-- Hành động -->
+                                <td class="text-center">
+                                    <div class="btn-group" role="group" th:if="${report.status.name() == 'PENDING'}">
+                                        <form th:action="@{/manager/user-reports/approve/{id}(id=${report.id})}"
+                                              method="post" class="d-inline">
+                                            <input type="hidden" name="reportId" th:value="${report.id}" />
+                                            <input type="hidden" name="contentType" th:value="${report.contentType}" />
+                                            <input type="hidden" name="contentId" th:value="${report.contentId}" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                    title="APPROVED">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/manager/user-reports/reject/{id}(id=${report.id})}"
+                                              method="post" class="d-inline">
+                                            <input type="hidden" name="reportId" th:value="${report.id}" />
+                                            <input type="hidden" name="contentType" th:value="${report.contentType}" />
+                                            <input type="hidden" name="contentId" th:value="${report.contentId}" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="REJECTED">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <span th:if="${report.status.name() != 'PENDING'}" class="text-muted">
+                                        <i class="fas fa-check-circle"></i> Đã xử lý
+                                    </span>
+                                </td>
+                            </tr>
+
+                            <!-- Trường hợp không có dữ liệu -->
+                            <tr th:if="${reportPage.content.isEmpty()}">
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    Không có báo cáo nào phù hợp với bộ lọc.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Phân trang -->
+                <div class="card-footer" th:if="${totalPages > 0}">
+                    <nav aria-label="Phân trang báo cáo">
+                        <ul class="pagination justify-content-center mb-0">
+                            <!-- Nút Previous -->
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/manager/reports(page=${currentPage - 1}, startDate=${startDate}, endDate=${endDate}, contentType=${contentType}, reason=${reason}, status=${status})}"
+                                   aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            <!-- Số trang -->
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/manager/reports(page=${i}, startDate=${startDate}, endDate=${endDate}, contentType=${contentType}, reason=${reason}, status=${status})}"
+                                   th:text="${i + 1}">1</a>
+                            </li>
+
+                            <!-- Nút Next -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="@{/manager/reports(page=${currentPage + 1}, startDate=${startDate}, endDate=${endDate}, contentType=${contentType}, reason=${reason}, status=${status})}"
+                                   aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <!-- Thông tin phân trang -->
+                    <div class="text-center mt-2 text-muted">
+                        <small>
+                            Trang <span th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span>
+                            (Tổng <span th:text="${reportPage.totalElements}">0</span> báo cáo)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal xem chi tiết báo cáo -->
+        <div th:each="report : ${reportPage.content}"
+             th:id="'viewReportModal-' + ${report.id}"
+             class="modal fade"
+             tabindex="-1"
+             aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title fw-bold">
+                            <i class="fas fa-flag me-2"></i>Chi tiết báo cáo #<span th:text="${report.id}"></span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Thông tin báo cáo -->
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-warning mb-3">
+                                    <i class="fas fa-info-circle me-1"></i> Thông tin báo cáo
+                                </h6>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="fw-semibold" style="width: 40%;">Người báo cáo:</td>
+                                        <td th:text="${report.reporter.profile.fullName}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Email:</td>
+                                        <td th:text="${report.reporter.email}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Thời gian:</td>
+                                        <td th:text="${#temporals.format(report.createdAt, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Loại nội dung:</td>
+                                        <td>
+                                            <span class="badge"
+                                                  th:classappend="${report.contentType == 'question' ? 'bg-primary' :
+                                                                  (report.contentType == 'answer' ? 'bg-info' : 'bg-secondary')}"
+                                                  th:text="${report.contentType == 'question' ? 'QUESTION' :
+                                                           (report.contentType == 'answer' ? 'ANSWER' : 'MESSAGES')}">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Lý do:</td>
+                                        <td>
+                                            <span class="badge bg-dark"
+                                                  th:text="${report.reason.name() == 'SPAM_ADS' ? 'Spam/Quảng cáo' :
+                                                           (report.reason.name() == 'HATEFUL_LANGUAGE' ? 'Ngôn từ thù hận' :
+                                                           (report.reason.name() == 'ADULT_CONTENT' ? 'Nội dung 18+' :
+                                                           (report.reason.name() == 'MISINFORMATION' ? 'Thông tin sai lệch' :
+                                                           (report.reason.name() == 'HARASSMENT' ? 'Quấy rối' : 'Khác'))))}">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Trạng thái:</td>
+                                        <td>
+                                            <span class="badge"
+                                                  th:classappend="${report.status.name() == 'PENDING' ? 'bg-warning text-dark' : 'bg-success'}"
+                                                  th:text="${report.status.name() == 'PENDING' ? 'Chờ xử lý' : 'Đã xử lý'}">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div class="mt-3">
+                                    <p class="fw-semibold mb-2">Mô tả chi tiết:</p>
+                                    <div class="p-3 border rounded bg-light"
+                                         style="white-space: pre-wrap; max-height: 200px; overflow-y: auto;">
+                                        <span th:text="${report.description ?: 'Không có mô tả'}"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nội dung bị báo cáo -->
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-danger mb-3">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Nội dung bị báo cáo
+                                </h6>
+
+                                <!-- Câu hỏi -->
+                                <div th:if="${report.question != null}">
+                                    <p class="mb-2"><strong>Tiêu đề câu hỏi:</strong></p>
+                                    <p class="text-primary fw-semibold" th:text="${report.question.title}"></p>
+
+                                    <p class="mb-2 mt-3"><strong>Nội dung câu hỏi:</strong></p>
+                                    <div class="p-3 border rounded bg-light"
+                                         style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">
+                                        <span th:text="${report.question.content}"></span>
+                                    </div>
+
+                                    <p class="mt-3 mb-1">
+                                        <strong>Người đăng:</strong>
+                                        <span th:text="${report.question.user.profile.fullName}"></span>
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Ngày đăng:</strong>
+                                        <span th:text="${#temporals.format(report.question.dateSend, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </p>
+                                </div>
+
+                                <!-- Câu trả lời -->
+                                <div th:if="${report.answer != null}">
+                                    <p class="mb-2"><strong>Nội dung câu trả lời:</strong></p>
+                                    <div class="p-3 border rounded bg-light"
+                                         style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">
+                                        <span th:text="${report.answer.content}"></span>
+                                    </div>
+
+                                    <p class="mt-3 mb-1">
+                                        <strong>Người trả lời:</strong>
+                                        <span th:text="${report.answer.consultant.profile.fullName}"></span>
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Ngày trả lời:</strong>
+                                        <span th:text="${#temporals.format(report.answer.dateAnswered, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </p>
+                                </div>
+
+                                <!-- Tin nhắn -->
+                                <div th:if="${report.message != null}">
+                                    <p class="mb-2"><strong>Nội dung tin nhắn:</strong></p>
+                                    <div class="p-3 border rounded bg-light"
+                                         style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">
+                                        <span th:text="${report.message.content}"></span>
+                                    </div>
+
+                                    <p class="mt-3 mb-1">
+                                        <strong>Người gửi:</strong>
+                                        <span th:text="${report.message.sender.fullName}"></span>
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Thời gian:</strong>
+                                        <span th:text="${#temporals.format(report.message.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <form th:if="${report.status.name() == 'PENDING'}"
+                              th:action="@{/manager/user-reports/approve/{id}(id=${report.id})}"
+                              method="post" class="d-inline">
+                            <input type="hidden" name="reportId" th:value="${report.id}" />
+                            <input type="hidden" name="contentType" th:value="${report.contentType}" />
+                            <input type="hidden" name="contentId" th:value="${report.contentId}" />
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i>Approved
+                            </button>
+                        </form>
+
+                        <form th:if="${report.status.name() == 'PENDING'}"
+                              th:action="@{/manager/user-reports/reject/{id}(id=${report.id})}"
+                              method="post" class="d-inline">
+                            <input type="hidden" name="reportId" th:value="${report.id}" />
+                            <input type="hidden" name="contentType" th:value="${report.contentType}" />
+                            <input type="hidden" name="contentId" th:value="${report.contentId}" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-1"></i>Rejected
+                            </button>
+                        </form>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </th:block>
+</th:block>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{pages/manager/layout-manager :: layout(~{::content}, 'events')}">
+<th:block th:fragment="content">
+    <div class="py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">
+                    <i class="fas fa-calendar-alt text-primary me-2"></i>Quản lý Sự kiện
+                </h2>
+                <p class="text-muted mb-0">Quản lý tất cả sự kiện trong hệ thống</p>
+            </div>
+            <div>
+                <a th:href="@{/manager/events/pending}" class="btn btn-warning me-2">
+                    <i class="fas fa-clock me-2"></i>Chờ duyệt 
+                    <span th:if="${pendingEvents > 0}" class="badge bg-light text-dark ms-1" th:text="${pendingEvents}">0</span>
+                </a>
+                <a th:href="@{/manager/events/reports}" class="btn btn-outline-primary">
+                    <i class="fas fa-chart-bar me-2"></i>Báo cáo
+                </a>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 mb-1">Tổng sự kiện</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${totalEvents}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-warning text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 mb-1">Chờ duyệt</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${pendingEvents}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-success text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 mb-1">Đã duyệt</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${approvedEvents}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-info text-white">
+                    <div class="card-body">
+                        <h6 class="text-white-50 mb-1">Đang diễn ra</h6>
+                        <h2 class="mb-0 fw-bold">
+                            <span th:text="${ongoingCount}">0</span>
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form th:action="@{/manager/events}" method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Trạng thái</label>
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option th:each="status : ${eventStatuses}" 
+                                    th:value="${status}" 
+                                    th:text="${status}"
+                                    th:selected="${status.toString() == selectedStatus}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Loại</label>
+                        <select name="type" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option th:each="type : ${eventTypes}" 
+                                    th:value="${type}" 
+                                    th:text="${type}"
+                                    th:selected="${type.toString() == selectedType}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Tư vấn viên</label>
+                        <select name="consultantId" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option th:each="consultant : ${consultants}" 
+                                    th:value="${consultant.consultantID}" 
+                                    th:text="${consultant.fullName}"
+                                    th:selected="${consultant.consultantID == selectedConsultantId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Khoa</label>
+                        <select name="departmentId" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option th:each="dept : ${departments}" 
+                                    th:value="${dept.departmentID}" 
+                                    th:text="${dept.departmentName}"
+                                    th:selected="${dept.departmentID == selectedDepartmentId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div th:if="${events != null and !events.isEmpty()}">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Sự kiện</th>
+                                    <th>Tư vấn viên</th>
+                                    <th>Loại/Hình thức</th>
+                                    <th>Thời gian</th>
+                                    <th>Đăng ký</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="event : ${events}">
+                                    <td th:text="${event.eventID}">1</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img th:src="${event.banner != null ? event.banner : '/images/default-event.jpg'}" 
+                                                 class="rounded me-2" 
+                                                 style="width: 50px; height: 50px; object-fit: cover;"
+                                                 alt="Banner">
+                                            <div>
+                                                <div class="fw-semibold" th:text="${event.title}">Title</div>
+                                                <small class="text-muted" th:text="${event.department?.departmentName}">Dept</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img th:src="${event.consultant.profile.avatar != null ? event.consultant.profile.avatar : '/images/default-avatar.png'}" 
+                                                 class="rounded-circle me-2" 
+                                                 style="width: 30px; height: 30px; object-fit: cover;"
+                                                 alt="Avatar">
+                                            <span class="small" th:text="${event.consultant.profile.fullName}">Name</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info mb-1 d-block" th:text="${event.type}">Type</span>
+                                        <span th:if="${event.mode.toString() == 'Online'}" class="badge bg-primary">Online</span>
+                                        <span th:if="${event.mode.toString() == 'Offline'}" class="badge bg-success">Offline</span>
+                                        <span th:if="${event.mode.toString() == 'Hybrid'}" class="badge bg-warning">Hybrid</span>
+                                    </td>
+                                    <td>
+                                        <small class="d-block" th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy')}">Date</small>
+                                        <small class="text-muted" th:text="${#temporals.format(event.startTime, 'HH:mm')}">Time</small>
+                                    </td>
+                                    <td>
+                                        <span th:text="${event.currentParticipants}">0</span>
+                                        <span th:if="${event.maxParticipants != null}">
+                                            / <span th:text="${event.maxParticipants}">0</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${event.status.toString() == 'Pending'}" class="badge bg-warning">Chờ duyệt</span>
+                                        <span th:if="${event.status.toString() == 'Approved'}" class="badge bg-success">Đã duyệt</span>
+                                        <span th:if="${event.status.toString() == 'Rejected'}" class="badge bg-danger">Từ chối</span>
+                                        <span th:if="${event.status.toString() == 'Ongoing'}" class="badge bg-primary">Đang diễn ra</span>
+                                        <span th:if="${event.status.toString() == 'Completed'}" class="badge bg-secondary">Hoàn thành</span>
+                                        <span th:if="${event.status.toString() == 'Cancelled'}" class="badge bg-dark">Đã hủy</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a th:href="@{/manager/events/{id}(id=${event.eventID})}" 
+                                               class="btn btn-outline-primary" title="Chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a th:href="@{/manager/events/participants/{id}(id=${event.eventID})}" 
+                                               class="btn btn-outline-info" title="Người tham gia">
+                                                <i class="fas fa-users"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    th:data-bs-target="'#deleteModal' + ${event.eventID}"
+                                                    title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="modal fade" th:id="'deleteModal' + ${event.eventID}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Xác nhận xóa</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Bạn có chắc chắn muốn xóa sự kiện này?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                        <form th:action="@{/manager/events/delete/{id}(id=${event.eventID})}" method="post">
+                                                            <button type="submit" class="btn btn-danger">Xóa</button>
+                                                        </form>
+                                                        </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <nav th:if="${totalPages > 1}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/manager/events(page=${currentPage - 1})}">Trước</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link" th:href="@{/manager/events(page=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link" th:href="@{/manager/events(page=${currentPage + 1})}">Sau</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div th:if="${events == null or events.isEmpty()}" class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Không có sự kiện nào</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+</html>

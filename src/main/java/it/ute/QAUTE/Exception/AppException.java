@@ -1,4 +1,4 @@
-package it.ute.QAUTE.Exception;
+package it.ute.QAUTE.exception;
 
 public class AppException extends RuntimeException{
 

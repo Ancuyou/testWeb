@@ -17,6 +17,12 @@
                 <li class="nav-item">
                     <a class="nav-link fw-semibold" th:href="@{/user/questions}">Cộng đồng</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" th:href="@{/user/events}">Sự kiện</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" th:href="@{/user/events/my-registrations}">Lịch sử đăng kí</a>
+                </li>
             </ul>
 
             <th:block th:if="${account != null}" th:replace="~{fragments/userDropDown :: userDropdown(

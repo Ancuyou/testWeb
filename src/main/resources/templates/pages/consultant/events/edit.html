@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{fragments/head :: head('Chỉnh sửa Sự kiện - QAUTE')}"></th:block>
+<body>
+<th:block th:replace="~{fragments/consultant/consultant-navbar :: consultant-navbar}"></th:block>
+
+<div class="container-fluid" style="margin-top: 80px;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Page Header -->
+            <div class="mb-4">
+                <div class="d-flex align-items-center">
+                    <a th:href="@{/consultant/events/details/{id}(id=${event.eventID})}" class="btn btn-outline-secondary me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold mb-1">
+                            <i class="fas fa-edit text-warning me-2"></i>Chỉnh sửa sự kiện
+                        </h2>
+                        <p class="text-muted mb-0">Cập nhật thông tin sự kiện của bạn</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Alert -->
+            <div th:if="${event.status.toString() == 'Pending'}" class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Sự kiện đang chờ phê duyệt. Sau khi chỉnh sửa, sự kiện sẽ cần được duyệt lại.
+            </div>
+
+            <!-- Form -->
+            <form th:action="@{/consultant/events/update/{id}(id=${event.eventID})}" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Main Content -->
+                    <div class="col-lg-8">
+                        <!-- Basic Information -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-info-circle text-primary me-2"></i>Thông tin cơ bản
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Tiêu đề sự kiện <span class="text-danger">*</span></label>
+                                    <input type="text" name="title" class="form-control" required 
+                                           th:value="${event.title}">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
+                                    <textarea name="description" class="form-control" rows="5" required 
+                                              th:text="${event.description}"></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Loại sự kiện <span class="text-danger">*</span></label>
+                                        <select name="type" class="form-select" required>
+                                            <option value="">-- Chọn loại --</option>
+                                            <option th:each="type : ${eventTypes}" 
+                                                    th:value="${type}" 
+                                                    th:text="${type}"
+                                                    th:selected="${type == event.type}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Hình thức <span class="text-danger">*</span></label>
+                                        <select name="mode" class="form-select" id="eventMode" required>
+                                            <option value="">-- Chọn hình thức --</option>
+                                            <option th:each="mode : ${eventModes}" 
+                                                    th:value="${mode}" 
+                                                    th:text="${mode}"
+                                                    th:selected="${mode == event.mode}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Khoa/Phòng ban</label>
+                                        <select name="departmentId" class="form-select">
+                                            <option value="">-- Tất cả khoa --</option>
+                                            <option th:each="dept : ${departments}" 
+                                                    th:value="${dept.departmentID}" 
+                                                    th:text="${dept.departmentName}"
+                                                    th:selected="${event.department != null && dept.departmentID == event.department.departmentID}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Lĩnh vực</label>
+                                        <select name="fieldId" class="form-select">
+                                            <option value="">-- Chọn lĩnh vực --</option>
+                                            <option th:each="field : ${fields}" 
+                                                    th:value="${field.fieldID}" 
+                                                    th:text="${field.fieldName}"
+                                                    th:selected="${event.field != null && field.fieldID == event.field.fieldID}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time & Location -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-calendar-alt text-primary me-2"></i>Thời gian & Địa điểm
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Thời gian bắt đầu <span class="text-danger">*</span></label>
+                                        <input type="datetime-local" name="startTime" class="form-control" required
+                                               th:value="${#temporals.format(event.startTime, 'yyyy-MM-dd HH:mm')}">
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Thời gian kết thúc <span class="text-danger">*</span></label>
+                                        <input type="datetime-local" name="endTime" class="form-control" required
+                                               th:value="${#temporals.format(event.endTime, 'yyyy-MM-dd HH:mm')}">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" id="locationField">
+                                    <label class="form-label fw-semibold">Địa điểm</label>
+                                    <input type="text" name="location" class="form-control" 
+                                           th:value="${event.location}"
+                                           placeholder="VD: Phòng A.101, Tòa nhà A">
+                                </div>
+
+                                <div class="mb-3" id="meetingLinkField">
+                                    <label class="form-label fw-semibold">Link họp online</label>
+                                    <input type="url" name="meetingLink" class="form-control" 
+                                           th:value="${event.meetingLink}"
+                                           placeholder="https://meet.google.com/xxx-xxxx-xxx">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4">
+                        <!-- Banner Upload -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-image text-primary me-2"></i>Banner sự kiện
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <img id="bannerPreview" 
+                                         th:src="${event.banner != null ? event.banner : '/images/default-event.jpg'}" 
+                                         class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
+                                </div>
+                                <input type="file" name="bannerFile" id="bannerFile" 
+                                       class="form-control" accept="image/*">
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle"></i> Để trống nếu không muốn thay đổi
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Participants -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0 fw-semibold">
+                                    <i class="fas fa-users text-primary me-2"></i>Số lượng tham gia
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Số lượng tối đa</label>
+                                    <input type="number" name="maxParticipants" class="form-control" 
+                                           min="1" th:value="${event.maxParticipants}"
+                                           placeholder="VD: 50">
+                                    <small class="text-muted d-block mt-2">
+                                        Hiện tại: <span class="fw-bold" th:text="${event.currentParticipants}">0</span> người đã đăng ký
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <button type="submit" class="btn btn-warning w-100 mb-2">
+                                    <i class="fas fa-save me-2"></i>Cập nhật sự kiện
+                                </button>
+                                <a th:href="@{/consultant/events/details/{id}(id=${event.eventID})}" 
+                                   class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-times me-2"></i>Hủy bỏ
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview banner
+document.getElementById('bannerFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('bannerPreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Initialize mode fields based on current mode
+document.addEventListener('DOMContentLoaded', function() {
+    const mode = document.getElementById('eventMode').value;
+    toggleModeFields(mode);
+});
+
+// Toggle location/meeting link based on mode
+document.getElementById('eventMode').addEventListener('change', function() {
+    toggleModeFields(this.value);
+});
+
+function toggleModeFields(mode) {
+    const locationField = document.getElementById('locationField');
+    const meetingLinkField = document.getElementById('meetingLinkField');
+    
+    if (mode === 'Online') {
+        locationField.style.display = 'none';
+        meetingLinkField.style.display = 'block';
+        locationField.querySelector('input').removeAttribute('required');
+        meetingLinkField.querySelector('input').setAttribute('required', 'required');
+    } else if (mode === 'Offline') {
+        locationField.style.display = 'block';
+        meetingLinkField.style.display = 'none';
+        locationField.querySelector('input').setAttribute('required', 'required');
+        meetingLinkField.querySelector('input').removeAttribute('required');
+    } else if (mode === 'Hybrid') {
+        locationField.style.display = 'block';
+        meetingLinkField.style.display = 'block';
+        locationField.querySelector('input').setAttribute('required', 'required');
+        meetingLinkField.querySelector('input').setAttribute('required', 'required');
+    }
+}
+</script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/toast :: toast}"></div>
+</body>
+</html>

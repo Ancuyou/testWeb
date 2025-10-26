@@ -71,6 +71,19 @@ public class EmailService {
         }
         return otp;
     }
+    public String sendMFAOTP(String toEmail){
+        String otp = createOTP();
+        try {
+            String htmlContent = getEmailTemplate("Xác thực đăng nhập", getMFAOTPContent(otp));
+            self.sendEmailHtml(toEmail, "Xác thực đăng nhập QAUTE", htmlContent);
+            return otp;
+        } catch (MessagingException e) {
+            // Fallback to plain text email if HTML fails
+            self.sendEmail(toEmail, "Xác thực đăng nhập", "Xin chào,\n\nMã OTP xác thực đăng nhập của bạn là: " + otp + "\n\nMã có hiệu lực trong 3 phút.");
+        }
+        return otp;
+    }
+
     @org.springframework.scheduling.annotation.Async("mailExecutor")
     public void sendEmailHtml(String toEmail, String subject, String htmlBody)
             throws MessagingException {
@@ -80,6 +93,30 @@ public class EmailService {
         helper.setSubject(subject);
         helper.setText(htmlBody, true);
         mailSender.send(mime);
+    }
+    private String getMFAOTPContent(String otp) {
+        return "<h2>Xác thực đăng nhập</h2>" +
+                "<p>Xin chào! 👋</p>" +
+                "<p>Chúng tôi phát hiện một yêu cầu đăng nhập vào tài khoản của bạn tại <strong>QAUTE</strong>. " +
+                "Để bảo mật tài khoản, vui lòng sử dụng mã OTP bên dưới để hoàn tất đăng nhập:</p>" +
+                "<div class='otp-box'>" +
+                "    <div class='otp-icon'>🔒</div>" +
+                "    <div class='otp-label'>Mã Xác Thực OTP</div>" +
+                "    <div class='otp-code'>" + otp + "</div>" +
+                "</div>" +
+                "<div class='warning'>" +
+                "    <p><strong>⚠️ Lưu ý quan trọng:</strong> Mã OTP này có hiệu lực trong <strong>3 phút</strong>. " +
+                "    Vui lòng không chia sẻ mã này với bất kỳ ai để bảo vệ tài khoản của bạn.</p>" +
+                "</div>" +
+                "<div class='info-box'>" +
+                "    <p>💡 Bạn không thực hiện đăng nhập này? Tài khoản của bạn có thể bị xâm nhập. " +
+                "    Hãy đổi mật khẩu ngay và liên hệ với chúng tôi để được hỗ trợ!</p>" +
+                "</div>" +
+                "<div class='divider'></div>" +
+                "<p style='color: #999999; font-size: 14px; text-align: center;'>" +
+                "    <strong>Bảo mật tài khoản</strong><br>" +
+                "    Luôn bật xác thực 2 yếu tố và không chia sẻ mã OTP với bất kỳ ai" +
+                "</p>";
     }
     private String getEmailTemplate(String title, String content) {
         return "<!DOCTYPE html>" +

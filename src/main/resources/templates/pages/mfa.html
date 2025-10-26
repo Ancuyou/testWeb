@@ -2,51 +2,471 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Xác thực bổ sung - QAUTE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực đăng nhập - QAUTE</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .mfa-container {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            min-height: 100vh;
+        }
+        .mfa-card {
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: none;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+        }
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            border-radius: 8px;
+            padding: .375rem .75rem;
+        }
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ced4da;
+            transition: all 0.3s ease;
+        }
+        .step-dot.active {
+            background: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+            width: 14px;
+            height: 14px;
+        }
+        .step-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+        .step-text.active {
+            color: #007bff;
+            font-weight: 600;
+        }
+        .pin-input {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            border-radius: 8px;
+            padding: .375rem .75rem;
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h5 class="mb-3 text-center">Xác thực bổ sung</h5>
-
-                    <div th:if="${error}" class="alert alert-danger" th:text="${error}">Có lỗi</div>
-                    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
-
-                    <!-- B1: OTP Email (6 số) -->
-                    <form th:if="${!emailForm}" th:action="@{/auth/mfa/verify-email}" method="post" class="mb-3">
-                        <label class="form-label">Nhập OTP (6 số) gửi tới email</label>
-                        <input type="text" name="code" class="form-control mb-3" placeholder="Ví dụ: 123456" pattern="\\d{6}" required>
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary w-100">Xác nhận OTP</button>
-                            <button class="btn btn-outline-secondary" formaction="#" formmethod="post"
-                                    th:formaction="@{/auth/mfa/resend}">Gửi lại OTP</button>
+<body>
+<div class="mfa-container d-flex align-items-center justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="mfa-card card">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <div class="brand-logo text-primary fw-bold fs-3">
+                                <i class="fas fa-shield-halved me-2"></i>QAUTE
+                            </div>
+                            <p class="text-muted mt-2">Xác thực đăng nhập nhiều lớp (MFA)</p>
                         </div>
-                    </form>
 
-                    <!-- B2: Mã định danh/PIN (6 số) – chỉ hiện sau khi qua OTP -->
-                    <form th:if="${emailForm}" th:action="@{/auth/mfa/verify-pin}" method="post">
-                        <label class="form-label">Nhập Mã định danh 6 số (PIN)</label>
-                        <input type="password" name="pin" class="form-control mb-3" placeholder="******" pattern="\\d{6}" required>
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button class="btn btn-primary w-100">Hoàn tất đăng nhập</button>
-                    </form>
+                        <!-- Step Indicator -->
+                        <div class="step-indicator">
+                            <div class="step-dot" th:classappend="${emailForm} ? 'active' : ''"></div>
+                            <div class="step-text" th:classappend="${emailForm} ? 'active' : ''">
+                                B1. OTP qua Email
+                            </div>
+                            <div class="step-dot" th:classappend="${!emailForm} ? 'active' : ''"></div>
+                            <div class="step-text" th:classappend="${!emailForm} ? 'active' : ''">
+                                B2. Mã định danh
+                            </div>
+                        </div>
 
-                    <hr>
-                    <div class="text-center">
-                        <a class="small" th:href="@{/auth/login}">Quay lại đăng nhập</a>
+                        <!-- Form nhập OTP -->
+                        <form th:if="${emailForm}"
+                              th:action="@{/auth/login/MFA/verifyOTP}"
+                              method="post"
+                              id="otpForm">
+                            <input type="hidden" name="cid" th:value="${cid}">
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>Nhập mã OTP
+                                </label>
+                                <p class="text-muted small">
+                                    Mã xác thực 6 số đã được gửi đến email của bạn
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1" name="otp1" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1" name="otp2" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1" name="otp3" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1" name="otp4" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1" name="otp5" required>
+                                    <input type="text" maxlength="1" class="otp-input form-control mx-1" name="otp6" required>
+                                </div>
+                            </div>
+
+                            <!-- Countdown -->
+                            <div class="text-center mb-2">
+                                <small class="text-muted">
+                                    Mã OTP sẽ hết hạn sau <span id="countdown" class="fw-bold text-primary">180</span> giây
+                                </small>
+                            </div>
+
+                            <!-- Hiển thị lỗi -->
+                            <div th:if="${error}" class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <span th:text="${error}"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-custom w-100 mt-3" id="otpSubmitBtn">
+                                <i class="fas fa-check me-2"></i>Xác nhận OTP
+                            </button>
+
+                            <button type="submit"
+                                    class="btn btn-link w-100 mt-2"
+                                    id="resendBtn"
+                                    th:formaction="@{/auth/login/MFA/resendOTP}"
+                                    formmethod="post"
+                                    formnovalidate
+                                    disabled>
+                                <i class="fas fa-rotate-right me-2"></i>Gửi lại mã OTP
+                            </button>
+
+                            <div class="alert alert-warning mt-2" id="otpExpiredMsg" style="display: none;">
+                                <i class="fas fa-clock me-2"></i>OTP đã hết hạn, vui lòng gửi lại mã.
+                            </div>
+
+                            <p class="text-muted small mt-3 text-center">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Không chia sẻ mã OTP với bất kỳ ai
+                            </p>
+                        </form>
+
+                        <!-- Form nhập PIN -->
+                        <form th:if="${!emailForm}"
+                              th:action="@{/auth/login/MFA/verifyPin}"
+                              method="post"
+                              id="pinForm">
+                            <input type="hidden" name="cid" th:value="${cid}">
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-key me-2 text-primary"></i>Nhập mã định danh
+                                </label>
+                                <p class="text-muted small">
+                                    Nhập mã PIN 6 số do hệ thống cung cấp
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                    <input type="password" maxlength="1" class="pin-input form-control mx-1" name="pin1" required>
+                                    <input type="password" maxlength="1" class="pin-input form-control mx-1" name="pin2" required>
+                                    <input type="password" maxlength="1" class="pin-input form-control mx-1" name="pin3" required>
+                                    <input type="password" maxlength="1" class="pin-input form-control mx-1" name="pin4" required>
+                                    <input type="password" maxlength="1" class="pin-input form-control mx-1" name="pin5" required>
+                                    <input type="password" maxlength="1" class="pin-input form-control mx-1" name="pin6" required>
+                                </div>
+                            </div>
+
+                            <!-- Hiển thị lỗi -->
+                            <div th:if="${error}" class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <span th:text="${error}"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-custom w-100 mt-3">
+                                <i class="fas fa-right-to-bracket me-2"></i>Hoàn tất đăng nhập
+                            </button>
+
+                            <p class="text-muted small mt-3 text-center">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Mã PIN dành riêng cho tài khoản Admin/Manager
+                            </p>
+                        </form>
+
+                        <!-- Quay lại login -->
+                        <div class="text-center mt-4">
+                            <a th:href="@{/auth/login}" class="text-primary fw-semibold">
+                                <i class="fas fa-arrow-left me-1"></i>Quay lại đăng nhập
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-            <p class="text-muted small mt-3">
-                * OTP hết hạn sau 3 phút. Nếu không nhận được, hãy thử “Gửi lại OTP”.
-            </p>
         </div>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener("DOMContentLoaded", function () {
+        const cid = /*[[${cid}]]*/ '';
+
+        /* ===========================
+           1) OTP FORM AUTO FOCUS
+           =========================== */
+        const otpForm = document.getElementById("otpForm");
+        const otpInputs = document.querySelectorAll(".otp-input");
+        const otpSubmitBtn = document.getElementById("otpSubmitBtn");
+        const resendBtn = document.getElementById("resendBtn");
+        const countdownEl = document.getElementById("countdown");
+        const expiredMsg = document.getElementById("otpExpiredMsg");
+
+        const OTP_TTL_SEC = 180;
+        const RESEND_LOCK_SEC = 30;
+
+        const SS_KEY_OTP_START = "qaute_mfa_otp_start";
+        const SS_KEY_RESEND_START = "qaute_mfa_resend_start";
+
+        function nowMs() { return Date.now(); }
+
+        function startCountdown(totalSec, onTick, onEnd) {
+            let secLeft = totalSec;
+            onTick(secLeft);
+            const timer = setInterval(() => {
+                secLeft--;
+                onTick(Math.max(secLeft, 0));
+                if (secLeft <= 0) {
+                    clearInterval(timer);
+                    onEnd && onEnd();
+                }
+            }, 1000);
+            return timer;
+        }
+
+        // Auto focus & move cho OTP inputs
+        if (otpInputs.length) {
+            otpInputs.forEach((input, idx, arr) => {
+                input.addEventListener("input", () => {
+                    input.value = input.value.replace(/\D/g, "");
+                    if (input.value.length === 1 && idx < arr.length - 1) {
+                        arr[idx + 1].focus();
+                    }
+                });
+
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Backspace" && !input.value && idx > 0) {
+                        arr[idx - 1].focus();
+                    }
+                });
+            });
+
+            // Paste 6 số trực tiếp
+            otpInputs[0].addEventListener("paste", (e) => {
+                const text = (e.clipboardData || window.clipboardData).getData("text");
+                if (/^\d{6}$/.test(text)) {
+                    e.preventDefault();
+                    for (let i = 0; i < 6; i++) {
+                        otpInputs[i].value = text[i];
+                    }
+                    otpInputs[5].focus();
+                }
+            });
+
+            // Auto focus vào ô đầu
+            if (!otpInputs[0].value) {
+                otpInputs[0].focus();
+            }
+        }
+
+        // Đếm ngược OTP
+        function initOtpCountdown() {
+            if (!otpForm || !countdownEl) return;
+
+            const stored = sessionStorage.getItem(SS_KEY_OTP_START);
+            let startTime = stored ? parseInt(stored, 10) : null;
+            const now = nowMs();
+
+            if (!startTime || isNaN(startTime) || now - startTime >= OTP_TTL_SEC * 1000) {
+                startTime = now;
+                sessionStorage.setItem(SS_KEY_OTP_START, String(startTime));
+            }
+
+            const elapsed = Math.floor((now - startTime) / 1000);
+            let remain = OTP_TTL_SEC - elapsed;
+            if (remain < 0) remain = 0;
+
+            if (expiredMsg) expiredMsg.style.display = "none";
+            if (otpSubmitBtn) otpSubmitBtn.disabled = remain <= 0;
+
+            startCountdown(
+                remain,
+                (sec) => {
+                    countdownEl.textContent = sec;
+                },
+                () => {
+                    countdownEl.textContent = "0";
+                    if (otpSubmitBtn) otpSubmitBtn.disabled = true;
+                    if (expiredMsg) expiredMsg.style.display = "block";
+                    if (resendBtn) resendBtn.disabled = false;
+                }
+            );
+        }
+
+        // Khóa nút resend
+        function initResendLock() {
+            if (!resendBtn) return;
+
+            const stored = sessionStorage.getItem(SS_KEY_RESEND_START);
+            const now = nowMs();
+            let startTime = stored ? parseInt(stored, 10) : null;
+
+            if (!startTime || isNaN(startTime) || now - startTime >= RESEND_LOCK_SEC * 1000) {
+                startTime = now;
+                sessionStorage.setItem(SS_KEY_RESEND_START, String(startTime));
+            }
+
+            const elapsed = Math.floor((now - startTime) / 1000);
+            let left = RESEND_LOCK_SEC - elapsed;
+
+            if (left <= 0) {
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-rotate-right me-2"></i>Gửi lại mã OTP';
+                return;
+            }
+
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = `<i class="fas fa-rotate-right me-2"></i>Gửi lại mã OTP <span class="text-muted">(${left}s)</span>`;
+            startCountdown(
+                left,
+                (sec) => {
+                    resendBtn.innerHTML = `<i class="fas fa-rotate-right me-2"></i>Gửi lại mã OTP <span class="text-muted">(${sec}s)</span>`;
+                },
+                () => {
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = '<i class="fas fa-rotate-right me-2"></i>Gửi lại mã OTP';
+                }
+            );
+        }
+
+        if (resendBtn) {
+            resendBtn.addEventListener("click", () => {
+                sessionStorage.setItem(SS_KEY_RESEND_START, String(nowMs()));
+                sessionStorage.removeItem(SS_KEY_OTP_START);
+            });
+        }
+
+        // Submit OTP form - ghép 6 ô thành 1 string
+        if (otpForm) {
+            otpForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                let otpValue = "";
+                otpInputs.forEach(input => {
+                    otpValue += input.value;
+                });
+
+                const formData = new FormData();
+                formData.append("cid", cid);
+                formData.append("inputOTP", otpValue);
+
+                const form = e.target;
+                const hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "inputOTP";
+                hiddenInput.value = otpValue;
+                form.appendChild(hiddenInput);
+
+                form.submit();
+            });
+
+            initOtpCountdown();
+            initResendLock();
+        }
+
+        /* ===========================
+           2) PIN FORM AUTO FOCUS
+           =========================== */
+        const pinForm = document.getElementById("pinForm");
+        const pinInputs = document.querySelectorAll(".pin-input");
+
+        if (pinInputs.length) {
+            pinInputs.forEach((input, idx, arr) => {
+                input.addEventListener("input", () => {
+                    input.value = input.value.replace(/\D/g, "");
+                    if (input.value.length === 1 && idx < arr.length - 1) {
+                        arr[idx + 1].focus();
+                    }
+                });
+
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Backspace" && !input.value && idx > 0) {
+                        arr[idx - 1].focus();
+                    }
+                });
+            });
+
+            // Paste 6 số
+            pinInputs[0].addEventListener("paste", (e) => {
+                const text = (e.clipboardData || window.clipboardData).getData("text");
+                if (/^\d{6}$/.test(text)) {
+                    e.preventDefault();
+                    for (let i = 0; i < 6; i++) {
+                        pinInputs[i].value = text[i];
+                    }
+                    pinInputs[5].focus();
+                }
+            });
+
+            // Auto focus
+            if (!pinInputs[0].value) {
+                pinInputs[0].focus();
+            }
+        }
+
+        // Submit PIN form
+        if (pinForm) {
+            pinForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                let pinValue = "";
+                pinInputs.forEach(input => {
+                    pinValue += input.value;
+                });
+
+                const form = e.target;
+                const hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "code";
+                hiddenInput.value = pinValue;
+                form.appendChild(hiddenInput);
+
+                form.submit();
+            });
+        }
+    });
+    /*]]>*/
+</script>
 </body>
 </html>

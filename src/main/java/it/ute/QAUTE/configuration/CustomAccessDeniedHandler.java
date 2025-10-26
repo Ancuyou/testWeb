@@ -1,6 +1,6 @@
 package it.ute.QAUTE.configuration;
 
-import it.ute.QAUTE.Exception.ErrorCode;
+import it.ute.QAUTE.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

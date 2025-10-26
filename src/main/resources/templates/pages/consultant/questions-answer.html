@@ -176,7 +176,7 @@
 
                         <!-- ANSWER FORM -->
                         <div class="card-footer answer-form" th:id="|answerForm${iterStat.count}|">
-                            <form th:action="@{/user/questions/answer}" method="post">
+                            <form th:action="@{/consultant/questions/answer}" method="post">
                                 <input type="hidden" name="questionId" th:value="${question.questionID}" />
                                 <div class="d-flex align-items-start">
                                     <img th:src="${account?.profile?.avatar ?: 'https://via.placeholder.com/40'}"
@@ -327,7 +327,7 @@
     </div>
 
     <div th:replace="~{fragments/report :: reportModal}"></div>
-
+    <div th:replace="~{fragments/toast :: toast}"></div>
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
     <!-- JAVASCRIPT -->

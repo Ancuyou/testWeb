@@ -1,11 +1,13 @@
 package it.ute.QAUTE.service;
 
-import it.ute.QAUTE.Exception.AppException;
-import it.ute.QAUTE.Exception.ErrorCode;
+import it.ute.QAUTE.exception.AppException;
+import it.ute.QAUTE.exception.ErrorCode;
+import com.github.benmanes.caffeine.cache.Cache;
 import it.ute.QAUTE.entity.Account;
 import it.ute.QAUTE.entity.Profiles;
 import it.ute.QAUTE.entity.User;
 import it.ute.QAUTE.repository.AccountRepository;
+import it.ute.QAUTE.repository.ProfilesRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 @Slf4j
@@ -28,7 +32,11 @@ public class AccountService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
+    private Cache<Integer, Boolean> onlineCache;
+    @Autowired
     private FileStorageService fileStorageService;
+    @Autowired
+    private ProfilesRepository profilesRepository;
 
     public void changePassword(String email,String password){
         Account account=accountRepository.findByEmail(email);
@@ -162,5 +170,39 @@ public class AccountService {
 
     public void save(Account account) {
         accountRepository.save(account);
+    }
+    public void updateAccountOffline(Integer id){
+        Profiles profiles=profilesRepository.findByAccountId(Long.valueOf(id));
+        profiles.setOnlineAt(new Date());
+        profilesRepository.save(profiles);
+    }
+    public String isAccountOnline(Integer id){
+        Boolean status = onlineCache.getIfPresent(id);
+        if (status != null && status) {
+            return "Online";
+        }
+        Profiles profiles = profilesRepository.findByAccountId(Long.valueOf(id));
+        if (profiles == null || profiles.getOnlineAt() == null) {
+            return "Offline (unknown)";
+        }
+        Date lastOnline = profiles.getOnlineAt();
+        Date now = new Date();
+        long diffInMillis = now.getTime() - lastOnline.getTime();
+        long diffInMinutes = diffInMillis / (60 * 1000);
+        if (diffInMinutes < 1) {
+            return "Vừa mới offline";
+        } else if (diffInMinutes < 60) {
+            return "Offline " + diffInMinutes + " phút trước";
+        } else if (diffInMinutes < 1440) {
+            long hours = diffInMinutes / 60;
+            return "Offline " + hours + " giờ trước";
+        } else {
+            long days = diffInMinutes / 1440;
+            return "Offline " + days + " ngày trước";
+        }
+    }
+    public List<Integer> listUserOnline(){
+        List<Integer> allUserIds = new ArrayList<>(onlineCache.asMap().keySet());
+        return allUserIds;
     }
 }
