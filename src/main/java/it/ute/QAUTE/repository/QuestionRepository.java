@@ -187,4 +187,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer>, Jp
             "FROM Question q JOIN q.field f " +
             "GROUP BY f.fieldID, f.fieldName ORDER BY COUNT(q.questionID) DESC")
     List<HotTopicDTO> findTopFields(Pageable pageable);
+
+    @Query("SELECT SUM(q.likes) FROM Question q WHERE q.user = :user")
+    Long sumLikesByUser(@Param("user") User user);
 }

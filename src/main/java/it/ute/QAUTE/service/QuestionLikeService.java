@@ -67,5 +67,10 @@ public class QuestionLikeService {
         question.setViews(question.getViews() + 1);
         questionRepository.save(question);
     }
+
+    public long getTotalLikesForUser(User user) {
+        Long totalLikes = questionRepository.sumLikesByUser(user);
+        return totalLikes != null ? totalLikes : 0L; // Trả về 0 nếu user chưa có câu hỏi nào
+    }
 }
 

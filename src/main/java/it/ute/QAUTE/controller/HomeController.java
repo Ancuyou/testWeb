@@ -43,6 +43,10 @@ public class HomeController {
     private QuestionService questionService;
     @Autowired
     private AnswerService answerService;
+    @Autowired
+    private QuestionLikeService questionLikeService;
+    @Autowired
+    private EventService eventService;
 
     @GetMapping("/user/home")
     public String homeUser(Model model, Principal principal) {
@@ -55,6 +59,7 @@ public class HomeController {
             if (user != null) {
                 long questionsAsked = questionService.countQuestionsByUser(user);
                 long answersReceived = answerService.countAnswersForUser(user);
+                long totalLikes = questionLikeService.getTotalLikesForUser(user);
                 long consultantsChatted = messageService.getRecentChats(account.getProfile().getProfileID())
                         .stream()
                         .map(m -> m.getSenderID().equals(account.getProfile().getProfileID()) ? m.getReceiverID() : m.getSenderID())
@@ -64,6 +69,7 @@ public class HomeController {
                 userStats.put("questionsAsked", questionsAsked);
                 userStats.put("answersReceived", answersReceived);
                 userStats.put("consultantsChatted", consultantsChatted);
+                userStats.put("totalLikes", totalLikes);
                 model.addAttribute("userStats", userStats);
 
                 List<Question> recentQuestions = questionService.getTop3RecentQuestionsByUser(user);
@@ -100,6 +106,8 @@ public class HomeController {
                 model.addAttribute("recentChats", recentChats);
             }
 
+            List<Event> recentEvents = eventService.findTop3UpcomingEvents(); // Thêm dòng này
+            model.addAttribute("recentEvents", recentEvents);
             List<HotTopicDTO> hotTopics = questionService.getTop5HotTopics();
             model.addAttribute("hotTopics", hotTopics);
         }

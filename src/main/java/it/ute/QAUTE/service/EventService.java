@@ -8,6 +8,7 @@ import it.ute.QAUTE.repository.EventRegistrationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -417,6 +418,11 @@ public class EventService {
 
     public long countApprovedEventsInDateRange(LocalDateTime start, LocalDateTime end) {
         return eventRepository.countByStatusInAndCreatedAtBetween(APPROVED_STATUSES, start, end);
+    }
+
+    public List<Event> findTop3UpcomingEvents() {
+        Pageable topThree = PageRequest.of(0, 3);
+        return eventRepository.findTop3UpcomingApprovedEvents(LocalDateTime.now(), topThree);
     }
 
     @Transactional(readOnly = true)

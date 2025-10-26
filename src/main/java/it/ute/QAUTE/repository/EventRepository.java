@@ -67,4 +67,7 @@ public interface EventRepository  extends JpaRepository<Event, Integer> {
 
     long countByConsultantAndStatus(Consultant consultant, Event.EventStatus status);
     long countByConsultantAndStatusIn(Consultant consultant, List<Event.EventStatus> statuses);
+
+    @Query("SELECT e FROM Event e WHERE e.status = 'Approved' AND e.startTime > :now ORDER BY e.startTime ASC")
+    List<Event> findTop3UpcomingApprovedEvents(@Param("now") LocalDateTime now, Pageable pageable);
 } 
