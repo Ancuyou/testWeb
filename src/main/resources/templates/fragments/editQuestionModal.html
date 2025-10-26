@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="editModal">
+    <div class="modal fade" id="editQuestionModal" tabindex="-1" aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form id="editQuestionForm" th:action="@{/user/questions/update}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="questionId" id="editQuestionId">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="editQuestionModalLabel">
+                            <i class="fas fa-edit me-2"></i>Chỉnh sửa câu hỏi
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editTitle" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editContent" class="form-label">Nội dung <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="editContent" name="content" rows="6" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editDepartment" class="form-label">Khoa/Ban <span class="text-danger">*</span></label>
+                                <select class="form-select" id="editDepartment" name="departmentId" required>
+                                    <option value="">-- Chọn Khoa/Ban --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editField" class="form-label">Lĩnh vực</label>
+                                <select class="form-select" id="editField" name="fieldId" disabled>
+                                    <option value="">-- Chọn lĩnh vực --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">File đính kèm hiện tại</label>
+                            <div id="currentAttachment" class="mb-2">
+                                <span class="text-muted">Không có file.</span>
+                            </div>
+                            <label for="editFileAttachment" class="form-label">Chọn tệp mới (để thay thế):</label>
+                            <input class="form-control" type="file" id="editFileAttachment" name="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx">
+                            <small class="text-muted">Bỏ trống nếu không muốn thay đổi file.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Hàm load fields khi department thay đổi (cho modal edit)
+        async function loadFieldsForEditModal(departmentId, selectedFieldId = null) {
+            const fieldSelect = document.getElementById('editField');
+            if (!fieldSelect) return;
+            fieldSelect.disabled = true;
+            fieldSelect.innerHTML = '<option value="">-- Đang tải... --</option>';
+
+            if (!departmentId) {
+                fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực --</option>';
+                return;
+            }
+
+            try {
+                const ctx = /*[[@{/}]]*/ '/';
+                const response = await fetch(`${ctx}api/fields/${departmentId}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const fields = await response.json();
+
+                fieldSelect.disabled = false;
+                fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực (tùy chọn) --</option>';
+                fields.forEach(f => {
+                    const opt = new Option(f.fieldName, f.fieldID);
+                    if (selectedFieldId && f.fieldID === parseInt(selectedFieldId)) {
+                        opt.selected = true;
+                    }
+                    fieldSelect.add(opt);
+                });
+            } catch (error) {
+                console.error('Error loading fields for edit modal:', error);
+                fieldSelect.innerHTML = '<option value="">-- Lỗi khi tải --</option>';
+            }
+        }
+
+        // Lắng nghe sự kiện department change trong modal edit
+        const editDepartmentSelect = document.getElementById('editDepartment');
+        if(editDepartmentSelect) {
+            editDepartmentSelect.addEventListener('change', function() {
+                loadFieldsForEditModal(this.value);
+            });
+        }
+
+
+        // Hàm fetch data và populate modal edit
+        async function populateEditModal(questionId) {
+            console.log("Populating edit modal for question ID:", questionId);
+            const modal = document.getElementById('editQuestionModal');
+            if (!modal) return;
+
+            const form = document.getElementById('editQuestionForm');
+            const idInput = document.getElementById('editQuestionId');
+            const titleInput = document.getElementById('editTitle');
+            const contentInput = document.getElementById('editContent');
+            const departmentSelect = document.getElementById('editDepartment');
+            const fieldSelect = document.getElementById('editField');
+            const currentAttachmentDiv = document.getElementById('currentAttachment');
+            const fileInput = document.getElementById('editFileAttachment');
+
+            // Reset form
+            form.reset();
+            currentAttachmentDiv.innerHTML = '<span class="text-muted">Đang tải...</span>';
+            fieldSelect.innerHTML = '<option value="">-- Chọn lĩnh vực --</option>';
+            fieldSelect.disabled = true;
+
+            try {
+                const ctx = /*[[@{/}]]*/ '/';
+                const response = await fetch(`${ctx}api/questions/details/${questionId}`);
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Bạn không có quyền chỉnh sửa câu hỏi này.');
+                    } else if (response.status === 404) {
+                        throw new Error('Câu hỏi không tồn tại.');
+                    } else {
+                        throw new Error(`Lỗi ${response.status}: Không thể tải dữ liệu câu hỏi.`);
+                    }
+                }
+                const data = await response.json();
+                console.log("Question data fetched:", data);
+
+                // Kiểm tra xem có thể chỉnh sửa không (từ backend)
+                if (!data.canEdit) {
+                    throw new Error('Không thể chỉnh sửa câu hỏi này (đã có trả lời hoặc lượt thích).');
+                }
+
+
+                idInput.value = data.questionID;
+                titleInput.value = data.title;
+                contentInput.value = data.content;
+
+                // Populate departments (chỉ làm 1 lần khi modal mở)
+                if (departmentSelect.options.length <= 1) { // Chỉ load nếu chưa có
+                    const departmentsResponse = await fetch(`${ctx}api/departments/all`); // Cần tạo API này
+                    const departments = await departmentsResponse.json();
+                    departments.forEach(dept => {
+                        const opt = new Option(dept.departmentName, dept.departmentID);
+                        departmentSelect.add(opt);
+                    });
+                }
+                // Set selected department
+                if (data.department) {
+                    departmentSelect.value = data.department.departmentID;
+                    // Trigger load fields for the selected department
+                    await loadFieldsForEditModal(data.department.departmentID, data.field ? data.field.fieldID : null);
+                }
+
+
+                // Hiển thị file đính kèm hiện tại
+                if (data.fileAttachment) {
+                    const fileName = data.fileAttachment.split('/').pop();
+                    currentAttachmentDiv.innerHTML = `
+                         <a href="${ctx}${data.fileAttachment.startsWith('/') ? data.fileAttachment.substring(1) : data.fileAttachment}" target="_blank" class="text-decoration-none">
+                             <i class="fas fa-paperclip me-1"></i> ${fileName}
+                         </a>`;
+                } else {
+                    currentAttachmentDiv.innerHTML = '<span class="text-muted">Không có file.</span>';
+                }
+                fileInput.value = ''; // Reset file input
+
+                // Cập nhật action của form
+                form.action = `${ctx}user/questions/update/${data.questionID}`;
+
+
+            } catch (error) {
+                console.error('Error populating edit modal:', error);
+                alert(`Lỗi: ${error.message}`);
+                // Đóng modal nếu có lỗi nghiêm trọng
+                const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                if (bootstrapModal) {
+                    bootstrapModal.hide();
+                }
+            }
+        }
+
+        // Gắn sự kiện vào document để bắt các nút Edit được load bởi AJAX
+        document.addEventListener('click', function(event) {
+            const editButton = event.target.closest('.btn-edit-question');
+            if (editButton) {
+                event.preventDefault();
+                const questionId = editButton.dataset.questionId;
+                if (questionId) {
+                    populateEditModal(questionId);
+                }
+            }
+        });
+
+        // Đảm bảo load lại department/field khi modal hiển thị (tránh lỗi cache)
+        const editModalElement = document.getElementById('editQuestionModal');
+        if(editModalElement){
+            editModalElement.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget; // Button that triggered the modal
+                if(button){
+                    const questionId = button.getAttribute('data-question-id');
+                    if (questionId) {
+                        populateEditModal(questionId);
+                    }
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

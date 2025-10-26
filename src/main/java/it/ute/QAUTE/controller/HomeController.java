@@ -10,6 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -117,8 +120,14 @@ public class HomeController {
     @GetMapping("/user/history")
     public String userHistory(
             @RequestParam(required = false) Integer highlightQuestionId,
+            @RequestParam(required = false) Integer departmentId, // Thêm filter params
+            @RequestParam(required = false) Integer fieldId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "latest") String sortBy, // Thêm sort param
+            @RequestParam(defaultValue = "0") int page,          // Thêm page param
             Model model,
-            Principal principal
+            Principal principal,
+            HttpServletRequest request // Thêm HttpServletRequest
     ) {
         if (principal != null) {
             String username = principal.getName();
@@ -126,24 +135,52 @@ public class HomeController {
             User user = userService.findByProfileId(account.getProfile().getProfileID()).orElse(null);
 
             if (user != null) {
-                List<Question> userQuestions = questionService.getAllQuestionsByUserSortedByDate(user);
-                long questionsAsked = userQuestions.size();
-                long answersReceived = answerService.countAnswersForUser(user);
+                Pageable pageable = PageRequest.of(page, 5); // Số lượng item mỗi trang, ví dụ 5
+                Page<Question> questionPage = questionService.searchAndFilterUserQuestions(
+                        user, departmentId, fieldId, keyword, sortBy, pageable);
 
-                model.addAttribute("userQuestions", userQuestions);
-                model.addAttribute("questionsAsked", questionsAsked);
+                model.addAttribute("userQuestions", questionPage.getContent());
+                model.addAttribute("totalPages", questionPage.getTotalPages());
+                model.addAttribute("currentPage", page);
+                model.addAttribute("totalItems", questionPage.getTotalElements()); // Tổng số câu hỏi của user (sau filter)
+
+
+                // Lấy stats (có thể tính lại dựa trên questionPage.getTotalElements() nếu filter)
+                long answersReceived = answerService.countAnswersForUser(user); // Giữ nguyên cách tính này hoặc tính dựa trên list đã filter
+                model.addAttribute("questionsAsked", questionPage.getTotalElements()); // Số lượng sau filter
                 model.addAttribute("answersReceived", answersReceived);
+
 
                 if (highlightQuestionId != null) {
                     model.addAttribute("highlightQuestionId", highlightQuestionId);
                 }
+
+                // Truyền lại các tham số filter/sort để giữ trạng thái trên view
+                model.addAttribute("selectedDepartmentId", departmentId);
+                model.addAttribute("selectedFieldId", fieldId);
+                model.addAttribute("keyword", keyword);
+                model.addAttribute("sortBy", sortBy);
+                model.addAttribute("departments", questionService.getAllDepartments());
+                // Load fields ban đầu dựa trên selectedDepartmentId nếu có
+                List<Field> fieldsForFilter = departmentId != null
+                        ? questionService.getFieldsByDepartmentId(departmentId)
+                        : questionService.getAllFields(); // Hoặc chỉ load khi có department
+                model.addAttribute("fields", fieldsForFilter); // Cần fields cho bộ lọc
+
             }
-            model.addAttribute("account", account);
+            model.addAttribute("account", account); // Luôn add account
+            // Kiểm tra nếu là AJAX request
+            String requestedWithHeader = request.getHeader("X-Requested-With");
+            if ("fetch".equals(requestedWithHeader)) {
+                return "pages/user/history :: historyContentFragment"; // Trả về fragment
+            }
+        } else {
+            // Chưa đăng nhập, có thể redirect về login
+            return "redirect:/auth/login";
         }
-        return "pages/user/history";
+        return "pages/user/history"; // Trả về trang đầy đủ nếu không phải AJAX
     }
 
-    // ... các phương thức POST và profile không thay đổi
     @GetMapping("/home/profile")
     public String profile(Model model, Principal principal) {
         String username = principal.getName();

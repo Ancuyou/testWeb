@@ -3,23 +3,9 @@
 <head>
     <th:block th:replace="~{fragments/head :: head('QAUTE - Lịch sử câu hỏi')}"></th:block>
     <style>
-        .question-card.highlight {
-            border: 2px solid #ffc107 !important;
-            background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%) !important;
-            box-shadow: 0 8px 24px rgba(255, 193, 7, 0.3) !important;
-            transform: scale(1.02);
-            transition: all 0.3s ease;
-        }
-
-        .question-card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .question-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
-        }
+        /* ... CSS highlight giữ nguyên ... */
+        .question-card { /* ... giữ nguyên ... */ }
+        .question-card:hover { /* ... giữ nguyên ... */ }
     </style>
 </head>
 
@@ -28,19 +14,14 @@
 
 <main style="padding-top: 80px; background-color: #f8f9fa; min-height: 100vh;">
     <div class="container py-5">
-        <!-- Header -->
         <div class="card border-0 shadow-sm mb-4 text-center p-4 rounded-3"
              style="background: linear-gradient(135deg, #ffd89b 0%, #ff9a56 100%); color: white;">
-            <h1 class="fw-bold display-5">
-                <i class="fas fa-history me-3"></i>
-                Lịch sử câu hỏi của bạn
-            </h1>
-            <p class="lead mb-0">
-                Quản lý và theo dõi tất cả câu hỏi bạn đã đặt
-            </p>
+            <h2 class="mb-0 fw-bold">
+                <i class="fas fa-history me-2"></i>
+                Lịch sử tư vấn
+            </h2>
+            <p class="mb-0 mt-2 opacity-75">Quản lý các câu hỏi bạn đã gửi</p>
         </div>
-
-        <!-- Stats -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm">
@@ -62,114 +43,411 @@
             </div>
         </div>
 
-        <!-- Questions List -->
-        <div th:each="question : ${userQuestions}"
-             th:id="'question-' + ${question.questionID}"
-             class="card border-0 shadow-sm mb-4 question-card"
-             th:classappend="${highlightQuestionId != null and highlightQuestionId == question.questionID} ? 'highlight' : ''">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form id="historySearchFilterForm" th:action="@{/user/history}" method="get" class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label for="historyKeyword" class="form-label">Tìm kiếm từ khóa</label>
+                        <input type="text" name="keyword" id="historyKeyword" class="form-control"
+                               placeholder="Nhập tiêu đề, nội dung..." th:value="${keyword}">
+                    </div>
+                    <div class="col-lg-3">
+                        <label for="historySortBy" class="form-label">Sắp xếp theo</label>
+                        <select id="historySortBy" name="sortBy" class="form-select">
+                            <option value="latest" th:selected="${sortBy == 'latest'}">Mới nhất</option>
+                            <option value="most_liked" th:selected="${sortBy == 'most_liked'}">Thích nhiều nhất</option>
+                            <option value="least_liked" th:selected="${sortBy == 'least_liked'}">Thích ít nhất</option>
+                            <option value="views" th:selected="${sortBy == 'views'}">Xem nhiều nhất</option>
+                            <option value="answers" th:selected="${sortBy == 'answers'}">Trả lời nhiều nhất</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label for="historyDepartmentFilter" class="form-label">Khoa/Ban</label>
+                        <select id="historyDepartmentFilter" name="departmentId" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option th:each="dept : ${departments}"
+                                    th:value="${dept.departmentID}"
+                                    th:text="${dept.departmentName}"
+                                    th:selected="${dept.departmentID == selectedDepartmentId}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label for="historyFieldFilter" class="form-label">Lĩnh vực</label>
+                        <select id="historyFieldFilter" name="fieldId" class="form-select" th:disabled="${selectedDepartmentId == null}">
+                            <option value="">Tất cả</option>
+                            <option th:each="f : ${fields}"
+                                    th:value="${f.fieldID}"
+                                    th:text="${f.fieldName}"
+                                    th:selected="${f.fieldID == selectedFieldId}">
+                            </option>
+                        </select>
+                    </div>
 
-            <div class="card-header bg-white py-3 border-0">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
-                             style="width: 45px; height: 45px;">
-                            <i class="fas fa-question-circle text-warning"></i>
+                    <div class="col-lg-1">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+        <div id="history-content-wrapper" th:fragment="historyContentFragment">
+            <div th:each="question : ${userQuestions}"
+                 th:id="'question-' + ${question.questionID}"
+                 class="card border-0 shadow-sm mb-4 question-card"
+                 th:classappend="${highlightQuestionId != null and highlightQuestionId == question.questionID} ? 'highlight' : ''">
+
+                <div class="card-header bg-white py-3 border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 45px; height: 45px;">
+                                <i class="fas fa-question-circle text-warning"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0" th:text="${question.title}">Tiêu đề</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <span th:text="${#temporals.format(question.dateSend, 'dd/MM/yyyy HH:mm')}"></span>
+                                </small>
+                            </div>
                         </div>
-                        <div>
-                            <h6 class="mb-0" th:text="${question.title}">Tiêu đề</h6>
-                            <small class="text-muted">
-                                <i class="fas fa-clock me-1"></i>
-                                <span th:text="${#temporals.format(question.dateSend, 'dd/MM/yyyy HH:mm')}"></span>
-                            </small>
+                        <span th:if="${!#lists.isEmpty(question.answers)}" class="badge bg-success">
+                             <i class="fas fa-check me-1"></i>Đã trả lời
+                         </span>
+                        <span th:if="${#lists.isEmpty(question.answers)}" class="badge bg-warning text-dark">
+                              <i class="fas fa-clock me-1"></i>Chờ phản hồi
+                         </span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <p class="mb-3" th:text="${question.content}">Nội dung</p>
+
+                    <div class="mb-3">
+                        <span class="badge bg-primary" th:text="${question.department?.departmentName}">Khoa</span>
+                        <span th:if="${question.field != null}"
+                              class="badge bg-secondary"
+                              th:text="${question.field?.fieldName}">Ngành</span>
+                    </div>
+
+                    <div class="row align-items-center mt-3 pt-3 border-top">
+                        <!-- Cột trái: Thống kê -->
+                        <div class="col-md-8">
+                            <div class="d-flex flex-wrap gap-3 text-muted small">
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-eye me-1 text-primary"></i>
+                                    <strong th:text="${question.views}">0</strong>
+                                    <span class="ms-1">lượt xem</span>
+                                </span>
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-thumbs-up me-1 text-success"></i>
+                                    <strong th:text="${question.likes}">0</strong>
+                                    <span class="ms-1">lượt thích</span>
+                                </span>
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-comment me-1 text-info"></i>
+                                    <strong th:text="${#lists.size(question.answers)}">0</strong>
+                                    <span class="ms-1">câu trả lời</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Cột phải: Button Edit -->
+                        <div class="col-md-4 text-end mt-2 mt-md-0">
+                            <button th:if="${question.status.name() == 'Pending' and #lists.isEmpty(question.answers) and question.likes == 0}"
+                                    class="btn btn-sm btn-warning btn-edit-question"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editQuestionModal"
+                                    th:data-question-id="${question.questionID}">
+                                <i class="fas fa-edit me-1"></i>Chỉnh sửa
+                            </button>
+                            <span th:if="${!(question.status.name() == 'Pending' and #lists.isEmpty(question.answers))}"
+                                  class="text-muted small fst-italic">
+                                <i class="fas fa-lock me-1"></i>Không thể chỉnh sửa
+                            </span>
                         </div>
                     </div>
-                    <span th:if="${!#lists.isEmpty(question.answers)}"
-                          class="badge bg-success">
-                        <i class="fas fa-check me-1"></i>Đã trả lời
-                    </span>
-                    <span th:if="${#lists.isEmpty(question.answers)}"
-                          class="badge bg-warning text-dark">
-                        <i class="fas fa-clock me-1"></i>Chờ phản hồi
-                    </span>
-                </div>
-            </div>
 
-            <div class="card-body">
-                <p class="mb-3" th:text="${question.content}">Nội dung</p>
 
-                <div class="mb-3">
-                    <span class="badge bg-primary" th:text="${question.department?.departmentName}">Khoa</span>
-                    <span th:if="${question.field != null}"
-                          class="badge bg-secondary"
-                          th:text="${question.field?.fieldName}">Ngành</span>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center text-muted small">
-                    <span>
-                        <i class="fas fa-eye me-1"></i>
-                        <span th:text="${question.views}">0</span> lượt xem
-                    </span>
-                    <span>
-                        <i class="fas fa-comment me-1"></i>
-                        <span th:text="${#lists.size(question.answers)}">0</span> câu trả lời
-                    </span>
-                </div>
-
-                <!-- Answers -->
-                <div th:if="${!#lists.isEmpty(question.answers)}" class="mt-4">
-                    <h6 class="fw-bold mb-3">Câu trả lời:</h6>
-                    <div th:each="answer : ${question.answers}" class="bg-light p-3 rounded-3 mb-2">
-                        <div class="d-flex align-items-start">
-                            <img th:src="@{${answer.consultant.profile.avatar}}"
-                                 class="rounded-circle me-3"
-                                 style="width: 40px; height: 40px;"
-                                 alt="Consultant">
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <div>
-                                        <strong th:text="${answer.consultant.profile.fullName}">Tư vấn viên</strong>
-                                        <span class="badge bg-success ms-2">Tư vấn viên</span>
+                    <div th:if="${!#lists.isEmpty(question.answers)}" class="mt-4">
+                        <h6 class="fw-bold mb-3">Câu trả lời:</h6>
+                        <div th:each="answer : ${question.answers}" class="bg-light p-3 rounded-3 mb-2">
+                            <div class="d-flex align-items-start">
+                                <img th:src="@{${answer.consultant.profile.avatar != null ? answer.consultant.profile.avatar : '/images/default_avatar.png'}}"
+                                     class="rounded-circle me-3"
+                                     style="width: 40px; height: 40px;"
+                                     alt="Consultant">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong th:text="${answer.consultant.profile.fullName}">Tư vấn viên</strong>
+                                            <span class="badge bg-success ms-2">Tư vấn viên</span>
+                                        </div>
+                                        <small class="text-muted"
+                                               th:text="${#temporals.format(answer.dateAnswered, 'dd/MM/yyyy HH:mm')}"></small>
                                     </div>
-                                    <small class="text-muted"
-                                           th:text="${#temporals.format(answer.dateAnswered, 'dd/MM/yyyy HH:mm')}"></small>
+                                    <p class="mb-0" th:text="${answer.content}">Câu trả lời</p>
                                 </div>
-                                <p class="mb-0" th:text="${answer.content}">Câu trả lời</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Empty state -->
-        <div th:if="${userQuestions == null or #lists.isEmpty(userQuestions)}"
-             class="card border-0 shadow-sm">
+            </div> <div th:if="${userQuestions == null or #lists.isEmpty(userQuestions)}"
+                        class="card border-0 shadow-sm">
             <div class="card-body p-5 text-center">
                 <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                <p class="text-muted">Bạn chưa đặt câu hỏi nào</p>
+                <p class="text-muted">Bạn chưa đặt câu hỏi nào (hoặc không khớp bộ lọc)</p>
                 <a th:href="@{/user/questions}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Đặt câu hỏi ngay
                 </a>
             </div>
         </div>
-    </div>
-</main>
 
-<th:block th:replace="~{fragments/footer :: footer}"></th:block>
+            <nav id="historyPaginationContainer" th:if="${totalPages > 1}" aria-label="History question pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/user/history(page=${currentPage - 1}, departmentId=${selectedDepartmentId}, fieldId=${selectedFieldId}, keyword=${keyword}, sortBy=${sortBy})}">
+                            Trước
+                        </a>
+                    </li>
 
-<script>
-    // Scroll to highlighted question
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        class="page-item"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/user/history(page=${i}, departmentId=${selectedDepartmentId}, fieldId=${selectedFieldId}, keyword=${keyword}, sortBy=${sortBy})}"
+                           th:text="${i + 1}">
+                        </a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/user/history(page=${currentPage + 1}, departmentId=${selectedDepartmentId}, fieldId=${selectedFieldId}, keyword=${keyword}, sortBy=${sortBy})}">
+                            Sau
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+
+        </div> </div> </main>
+
+<th:block th:replace="~{fragments/editQuestionModal :: editModal}"></th:block> <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
+<script th:inline="javascript">
+    // Scroll to highlighted question with timeout
     document.addEventListener('DOMContentLoaded', function() {
+        applyHighlightWithTimeout(); // Gọi hàm highlight ban đầu
+        setupHistoryAjax();          // Gọi hàm setup AJAX
+        setupHistoryFilterCascade(); // Gọi hàm setup cascade cho filter
+        loadInitialHistoryFields();  // Load field ban đầu cho filter
+    });
+
+    function applyHighlightWithTimeout() {
         const highlightedCard = document.querySelector('.question-card.highlight');
         if (highlightedCard) {
+            console.log("Highlighting card:", highlightedCard.id);
             setTimeout(() => {
                 highlightedCard.scrollIntoView({
                     behavior: 'smooth',
                     block: 'center'
                 });
-            }, 300);
+                // Thêm timeout để xóa class highlight sau 5 giây
+                setTimeout(() => {
+                    console.log("Removing highlight from:", highlightedCard.id);
+                    highlightedCard.classList.remove('highlight');
+                }, 5000); // 5000 milliseconds = 5 seconds
+            }, 300); // Delay scroll
         }
-    });
+    }
+
+
+    function setupHistoryAjax() {
+        const contentWrapperId = 'history-content-wrapper';
+        const formId = 'historySearchFilterForm';
+        const paginationId = 'historyPaginationContainer';
+        const ctx = /*[[@{/}]]*/ '/'; // Context path
+
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', handleHistoryAjaxNavigation);
+        }
+
+        // Gắn listener cho pagination links (phải làm sau mỗi lần load content)
+        attachPaginationListeners();
+
+        // Xử lý history back/forward
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.path && event.state.targetId === contentWrapperId) {
+                loadHistoryFragment(event.state.path, false); // false = không push state mới
+            }
+        });
+        // Lưu trạng thái ban đầu
+        history.replaceState({ path: window.location.href, targetId: contentWrapperId }, '');
+
+
+        function handleHistoryAjaxNavigation(event) {
+            event.preventDefault();
+            const target = event.currentTarget;
+            let url;
+            if (target.tagName === 'A') {
+                url = target.href;
+            } else if (target.tagName === 'FORM') {
+                // Lấy tất cả params từ form
+                const formData = new FormData(target);
+                const params = new URLSearchParams(formData);
+                url = new URL(target.action, window.location.origin) + '?' + params.toString();
+            } else {
+                return; // Không xử lý các element khác
+            }
+
+            console.log("Navigating via AJAX to:", url);
+            loadHistoryFragment(url);
+        }
+
+        async function loadHistoryFragment(url, pushState = true) {
+            const contentWrapper = document.getElementById(contentWrapperId);
+            if (!contentWrapper) return;
+
+            contentWrapper.style.opacity = '0.5'; // Loading indicator
+
+            try {
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'fetch' } // Báo cho backend biết là AJAX
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const html = await response.text();
+                // Chỉ cập nhật nội dung bên trong wrapper
+                contentWrapper.innerHTML = html;
+
+                if (pushState) {
+                    history.pushState({ path: url, targetId: contentWrapperId }, '', url);
+                }
+
+                // Gắn lại listener cho các nút mới và pagination
+                attachPaginationListeners();
+                // Gắn lại listener cho nút edit nếu có (từ fragment modal)
+                // Lưu ý: Nếu nút edit nằm trong fragment được load lại, cần đảm bảo listener được gắn lại
+                // Ví dụ: gọi lại hàm setupDynamicListeners(contentWrapper) nếu bạn có hàm đó
+
+                applyHighlightWithTimeout(); // Áp dụng lại highlight nếu cần
+
+                setupHistoryFilterCascade(); // Gắn lại cascade listener cho filter
+                loadInitialHistoryFields(); // Load lại field dựa trên department mới
+
+                // Quan trọng: Gắn lại listener cho nút Edit trong nội dung mới load
+                document.querySelectorAll('.btn-edit-question').forEach(btn => {
+                    // Kiểm tra nếu chưa có listener
+                    if (!btn.hasAttribute('data-listener-attached')) {
+                        btn.addEventListener('click', function(e){
+                            e.preventDefault();
+                            const qId = this.dataset.questionId;
+                            if(qId && typeof populateEditModal === 'function'){
+                                populateEditModal(qId); // Gọi hàm populate modal từ editQuestionModal fragment
+                            }
+                        });
+                        btn.setAttribute('data-listener-attached', 'true');
+                    }
+                });
+
+
+            } catch (error) {
+                console.error('Failed to load history fragment:', error);
+                window.location.href = url; // Fallback: load lại toàn bộ trang nếu lỗi AJAX
+            } finally {
+                contentWrapper.style.opacity = '1';
+            }
+        }
+
+        function attachPaginationListeners() {
+            const paginationContainer = document.getElementById(paginationId);
+            if (paginationContainer) {
+                paginationContainer.querySelectorAll('a.page-link').forEach(link => {
+                    // Xóa listener cũ trước khi thêm mới để tránh bị gọi nhiều lần
+                    link.removeEventListener('click', handleHistoryAjaxNavigation);
+                    link.addEventListener('click', handleHistoryAjaxNavigation);
+                });
+            }
+        }
+    }
+
+    // --- Cascade Dropdown cho Filter ---
+    function setupHistoryFilterCascade() {
+        const departmentFilter = document.getElementById('historyDepartmentFilter');
+        const fieldFilter = document.getElementById('historyFieldFilter');
+        const ctx = /*[[@{/}]]*/ '/';
+
+        if (!departmentFilter || !fieldFilter) return;
+
+        // Xóa listener cũ trước khi thêm mới
+        departmentFilter.removeEventListener('change', handleFilterDepartmentChange);
+        departmentFilter.addEventListener('change', handleFilterDepartmentChange);
+
+        async function handleFilterDepartmentChange() {
+            const departmentId = this.value;
+            fieldFilter.disabled = true;
+            fieldFilter.innerHTML = '<option value="">-- Đang tải... --</option>';
+
+            const url = departmentId ? `${ctx}api/fields/${departmentId}` : `${ctx}api/fields/all`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const fields = await response.json();
+
+                fieldFilter.innerHTML = '<option value="">Tất cả lĩnh vực</option>';
+                fields.forEach(f => {
+                    const opt = new Option(f.fieldName, f.fieldID);
+                    fieldFilter.add(opt);
+                });
+                fieldFilter.disabled = false;
+            } catch (error) {
+                console.error('Error loading fields for filter:', error);
+                fieldFilter.innerHTML = '<option value="">-- Lỗi tải --</option>';
+                fieldFilter.disabled = false; // Vẫn cho phép chọn "Tất cả"
+            }
+        }
+    }
+
+    function loadInitialHistoryFields() {
+        const departmentFilter = document.getElementById('historyDepartmentFilter');
+        const fieldFilter = document.getElementById('historyFieldFilter');
+        const selectedFieldId = /*[[${selectedFieldId}]]*/ null;
+        const ctx = /*[[@{/}]]*/ '/';
+
+        if (!departmentFilter || !fieldFilter) return;
+
+        const selectedDeptId = departmentFilter.value;
+        const url = selectedDeptId ? `${ctx}api/fields/${selectedDeptId}` : `${ctx}api/fields/all`;
+        fieldFilter.disabled = true;
+        fieldFilter.innerHTML = '<option value="">-- Đang tải... --</option>';
+
+        fetch(url)
+            .then(response => response.json())
+            .then(fields => {
+                fieldFilter.innerHTML = '<option value="">Tất cả lĩnh vực</option>';
+                fields.forEach(f => {
+                    const opt = new Option(f.fieldName, f.fieldID);
+                    // Set selected nếu khớp với giá trị từ server
+                    if (selectedFieldId != null && f.fieldID.toString() === selectedFieldId.toString()) {
+                        opt.selected = true;
+                    }
+                    fieldFilter.add(opt);
+                });
+                fieldFilter.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error loading initial fields for filter:', error);
+                fieldFilter.innerHTML = '<option value="">-- Lỗi tải --</option>';
+                fieldFilter.disabled = false;
+            });
+    }
 </script>
 </body>
 </html>

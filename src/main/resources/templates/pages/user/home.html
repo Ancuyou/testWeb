@@ -587,8 +587,11 @@
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye me-1"></i>Xem chi tiết
                                         </a>
-                                        <button th:if="${activity.status.name() == 'Pending'}"
-                                                class="btn btn-sm btn-outline-secondary">
+                                        <button th:if="${activity.status.name() == 'Pending' and #lists.isEmpty(activity.answers)}"
+                                                class="btn btn-sm btn-outline-secondary btn-edit-question"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editQuestionModal"
+                                                th:data-question-id="${activity.questionID}">
                                             <i class="fas fa-edit me-1"></i>Sửa
                                         </button>
                                     </div>
@@ -1210,6 +1213,7 @@
 </section>
 
 <div th:replace="~{fragments/chat-bubble :: chat-bubble}"></div>
+<th:block th:replace="~{fragments/editQuestionModal :: editModal}"></th:block>
 <!-- **2. Thêm Footer (quan trọng để load JS)** -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
