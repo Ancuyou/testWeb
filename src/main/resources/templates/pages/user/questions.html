@@ -539,19 +539,18 @@
                     reportModal.addEventListener('hidden.bs.modal', () => document.getElementById('reportForm').reset());
                 }
 
-
                 // Khởi tạo các dropdown phụ thuộc
                 initDepartmentFieldCascade();
                 initFilterDepartmentFieldCascade();
                 loadInitialFieldsForFilter();
 
                 // Gắn listener cho các thành phần sẽ được tải lại bằng AJAX
-                rebindEventListeners();
+                setupDynamicListeners(document.getElementById(mainContentWrapperId));
 
                 // Xử lý history back/forward của trình duyệt
                 window.addEventListener('popstate', function(event) {
                     if (event.state && event.state.path) {
-                        loadContentFragment(event.state.path, false); // Không pushState khi back/forward
+                        loadContentFragment(event.state.path, false);
                     }
                 });
                 // Lưu trạng thái ban đầu
@@ -562,73 +561,80 @@
              * Gắn lại các event listener cho nội dung được tải động qua AJAX.
              * Phải được gọi mỗi khi #content-wrapper được cập nhật.
              */
-            function rebindEventListeners() {
-                const contentWrapper = document.getElementById(mainContentWrapperId);
-                if (!contentWrapper) return;
+            function setupDynamicListeners(container) {
+                if (!container) return;
+                console.log("Setting up dynamic listeners inside:", container.id);
 
-                //1. Form tìm kiếm và sắp xếp
-                const searchForm = contentWrapper.querySelector('#searchForm');
-                if (searchForm) {
-                    searchForm.addEventListener('submit', handleAjaxNavigation);
-                }
-
-                const filterForm = contentWrapper.querySelector('#filterForm');
-                if (filterForm) {
-                    filterForm.addEventListener('submit', handleAjaxNavigation);
-                }
-
-                // 2. Các link phân trang
-                const paginationLinks = contentWrapper.querySelectorAll('#paginationContainer a');
-                paginationLinks.forEach(link => link.addEventListener('click', handleAjaxNavigation));
-
-                // 3. Các nút chức năng trên mỗi câu hỏi (report, toggle comment, v.v.)
-                contentWrapper.querySelectorAll('.btn-toggle-comments').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const target = document.getElementById(this.dataset.target);
-                        if (target) target.style.display = target.style.display === 'none' ? 'block' : 'none';
-                    });
-                });
-
-                contentWrapper.querySelectorAll('.btn-toggle-answer').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const target = document.getElementById(this.dataset.target);
-                        if (target) target.style.display = target.style.display === 'none' ? 'block' : 'none';
-                    });
-                });
-
-                contentWrapper.querySelectorAll('.btn-report').forEach(btn => {
-                    btn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        openReportModal(this.dataset.type, this.dataset.id);
-                    });
-                });
-
-                // 5. Xử lý like/unlike câu hỏi
-                contentWrapper.querySelectorAll('.btn-like-question').forEach(btn => {
-                    btn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const questionId = this.dataset.questionId;
-                        handleQuestionLike(questionId, this);
-                    });
-                });
-
-                // 6. Tăng view count khi click vào câu hỏi
-                contentWrapper.querySelectorAll('[data-question-view-id]').forEach(element => {
-                    element.addEventListener('click', function () {
-                        const questionId = this.dataset.questionViewId;
-                        handleQuestionView(questionId);
-                    });
-                });
-
-
-                // 4. Highlight câu hỏi nếu có
-                const highlightId = /*[[${highlightQuestionId}]]*/ null;
-                if (highlightId) {
-                    const card = contentWrapper.querySelector(`[data-question-id="${highlightId}"]`);
-                    if (card) {
-                        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+                // Nút Toggle Comments
+                container.querySelectorAll('.btn-toggle-comments').forEach(btn => {
+                    // *** Quan trọng: Chỉ gắn listener nếu chưa có ***
+                    if (!btn.hasAttribute('data-listener-attached')) {
+                        console.log("Attaching listener to toggle button for question:", btn.dataset.questionViewId);
+                        btn.addEventListener('click', handleToggleCommentsClick);
+                        btn.setAttribute('data-listener-attached', 'true'); // Đánh dấu đã gắn
                     }
+                });
+
+                // Nút Toggle Answer Form (cho Consultant)
+                container.querySelectorAll('.btn-toggle-answer').forEach(btn => {
+                    if (!btn.hasAttribute('data-listener-attached')) {
+                        btn.addEventListener('click', function() {
+                            const target = document.getElementById(this.dataset.target);
+                            if (target) target.style.display = target.style.display === 'none' ? 'block' : 'none';
+                        });
+                        btn.setAttribute('data-listener-attached', 'true');
+                    }
+                });
+
+
+                // Nút Report
+                container.querySelectorAll('.btn-report').forEach(btn => {
+                    if (!btn.hasAttribute('data-listener-attached')) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            openReportModal(this.dataset.type, this.dataset.id);
+                        });
+                        btn.setAttribute('data-listener-attached', 'true');
+                    }
+                });
+
+                // Nút Like
+                container.querySelectorAll('.btn-like-question').forEach(btn => {
+                    if (!btn.hasAttribute('data-listener-attached')) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            handleQuestionLike(this.dataset.questionId, this);
+                        });
+                        btn.setAttribute('data-listener-attached', 'true');
+                    }
+                });
+
+                // Highlight câu hỏi (chạy 1 lần sau khi load)
+                const highlightId = /*[[${highlightQuestionId}]]*/ null;
+                if (highlightId && !container.dataset.highlighted) { // Chỉ scroll lần đầu
+                    const card = container.querySelector(`[data-question-id="${highlightId}"]`);
+                    if (card) { setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); }
+                    container.dataset.highlighted = 'true'; // Đánh dấu đã scroll
                 }
+
+                // Gắn listener cho forms và pagination (nếu dùng AJAX)
+                const searchForm = container.querySelector('#searchForm');
+                if (searchForm && !searchForm.hasAttribute('data-listener-attached')) {
+                    searchForm.addEventListener('submit', handleAjaxNavigation);
+                    searchForm.setAttribute('data-listener-attached', 'true');
+                }
+                const filterForm = container.querySelector('#filterForm');
+                if (filterForm && !filterForm.hasAttribute('data-listener-attached')) {
+                    filterForm.addEventListener('submit', handleAjaxNavigation);
+                    filterForm.setAttribute('data-listener-attached', 'true');
+                }
+                const paginationLinks = container.querySelectorAll('#paginationContainer a');
+                paginationLinks.forEach(link => {
+                    if (!link.hasAttribute('data-listener-attached')) {
+                        link.addEventListener('click', handleAjaxNavigation);
+                        link.setAttribute('data-listener-attached', 'true');
+                    }
+                });
             }
 
             /**
@@ -786,33 +792,78 @@
                 }
             }
 
-            async function handleQuestionView(questionId) {
+            function handleToggleCommentsClick() {
+                const targetId = this.dataset.target;
+                const target = document.getElementById(targetId);
+                const questionId = this.dataset.questionViewId;
+                // Lấy trạng thái đã tăng view chưa từ chính nút bấm
+                const viewIncremented = this.hasAttribute('data-view-incremented');
+
+                console.log(`Toggle clicked for ${questionId}. Target: ${targetId}. View Incremented: ${viewIncremented}`);
+
+                if (target) {
+                    const isCurrentlyHidden = target.style.display === 'none' || !target.style.display;
+                    target.style.display = isCurrentlyHidden ? 'block' : 'none';
+
+                    // Chỉ gọi API và cập nhật UI nếu MỞ comment VÀ chưa từng tăng view cho lần mở này
+                    if (isCurrentlyHidden && questionId && !viewIncremented) {
+                        console.log(`Action: Opening comments for ${questionId}. Triggering view increment.`);
+                        handleQuestionView(questionId, this); // Truyền cả nút bấm vào hàm
+                    } else if (isCurrentlyHidden) {
+                        console.log(`Action: Opening comments for ${questionId}, but view already incremented for this session.`);
+                    } else {
+                        console.log(`Action: Closing comments for ${questionId}. No view increment needed.`);
+                    }
+                } else {
+                    console.warn(`Target element ${targetId} not found.`);
+                }
+            }
+
+            // Sửa hàm handleQuestionView để nhận thêm nút bấm và set cờ
+            async function handleQuestionView(questionId, buttonElement) {
+                console.log(`Executing handleQuestionView for ${questionId}`);
+                // Đánh dấu ngay là đang xử lý để tránh gọi lại nếu user click nhanh
+                if (buttonElement.hasAttribute('data-view-processing')) {
+                    console.log(`View increment already processing for ${questionId}. Skipping.`);
+                    return;
+                }
+                buttonElement.setAttribute('data-view-processing', 'true');
+
                 try {
-                    await fetch(`${ctx}api/questions/${questionId}/view`, {
-                        method: 'POST',
-                    });
+                    const response = await fetch(`${ctx}api/questions/${questionId}/view`, { method: 'POST' });
+                    console.log(`Fetch completed for view increment ${questionId}. Status: ${response.status}`);
+
                     if (response.ok) {
-                        // Tìm phần tử hiển thị view count của câu hỏi tương ứng
+                        // Đánh dấu là đã tăng view thành công trên nút bấm
+                        buttonElement.setAttribute('data-view-incremented', 'true');
+                        console.log(`Successfully incremented view for ${questionId}. Marked button.`);
+
+                        // Cập nhật giao diện
                         const questionCard = document.querySelector(`.question-card[data-question-id="${questionId}"]`);
                         if (questionCard) {
-                            // Selector này có thể cần điều chỉnh tùy cấu trúc HTML chính xác
-                            const viewCountSpan = questionCard.querySelector('.text-muted.small span:first-of-type');
-                            if (viewCountSpan) {
-                                let currentViews = parseInt(viewCountSpan.textContent.trim(), 10);
-                                if (!isNaN(currentViews)) {
-                                    viewCountSpan.textContent = currentViews + 1; // Tăng số view lên 1
-                                }
-                            } else {
-                                console.warn(`View count span not found for question ${questionId}`);
-                            }
-                        } else {
-                            console.warn(`Question card not found for question ${questionId}`);
-                        }
+                            const viewCountContainer = questionCard.querySelector('.d-flex.justify-content-between.align-items-center .text-muted.small');
+                            if (viewCountContainer) {
+                                const viewCountSpan = viewCountContainer.querySelector('i.fa-eye + span');
+                                if (viewCountSpan) {
+                                    let currentViews = parseInt(viewCountSpan.textContent.trim(), 10);
+                                    if (!isNaN(currentViews)) {
+                                        viewCountSpan.textContent = currentViews + 1;
+                                        console.log(`UI Updated: View count for ${questionId} is now ${currentViews + 1}`);
+                                    } else { console.warn(`Could not parse current view count: "${viewCountSpan.textContent}"`); }
+                                } else { console.warn(`View count span not found in card ${questionId}`); }
+                            } else { console.warn(`View count container not found in card ${questionId}`); }
+                        } else { console.warn(`Question card not found for UI update: ${questionId}`); }
                     } else {
-                        console.error(`Failed to record view for question ${questionId}. Status: ${response.status}`);
+                        console.error(`Failed API call to record view for ${questionId}. Status: ${response.status}`);
+                        // Không đặt cờ data-view-incremented nếu API lỗi, cho phép thử lại lần sau
                     }
                 } catch (error) {
-                    console.error('Error recording view:', error);
+                    console.error(`Error recording view for question ${questionId}:`, error);
+                    // Không đặt cờ data-view-incremented nếu có lỗi mạng, cho phép thử lại lần sau
+                } finally {
+                    // Xóa cờ đang xử lý sau khi hoàn tất (dù thành công hay lỗi)
+                    buttonElement.removeAttribute('data-view-processing');
+                    console.log(`Finished processing view increment for ${questionId}.`);
                 }
             }
 
