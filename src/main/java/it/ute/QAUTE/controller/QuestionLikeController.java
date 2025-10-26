@@ -40,13 +40,23 @@ public class QuestionLikeController {
         if (user == null) {
             return ResponseEntity.status(403).build();
         }
-        boolean liked = questionLikeService.toggleLike(questionId, user);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("liked", liked);
-        response.put("success", true);
-
-        return ResponseEntity.ok(response);
+        try {
+            // Toggle like và lấy trạng thái mới
+            boolean liked = questionLikeService.toggleLike(questionId, user);
+            // Lấy số lượt like mới nhất SAU KHI toggle
+            long likeCount = questionLikeService.getLikeCount(questionId); // Cần thêm hàm này
+            Map<String, Object> response = new HashMap<>();
+            response.put("liked", liked);
+            response.put("likeCount", likeCount); // **Thêm dòng này**
+            response.put("success", true);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            // Optional: Bắt lỗi nếu questionId không tồn tại
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @PostMapping("/{questionId}/view")

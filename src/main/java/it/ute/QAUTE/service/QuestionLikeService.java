@@ -29,7 +29,7 @@ public class QuestionLikeService {
         if (existingLike.isPresent()) {
             // Unlike
             questionLikeRepository.delete(existingLike.get());
-            question.setLikes(question.getLikes() - 1);
+            question.setLikes((int) questionLikeRepository.countByQuestion(question));
             questionRepository.save(question);
             return false;
         } else {
@@ -39,11 +39,19 @@ public class QuestionLikeService {
             like.setUser(user);
             like.setLikedAt(LocalDateTime.now());
             questionLikeRepository.save(like);
-
-            question.setLikes(question.getLikes() + 1);
+            question.setLikes((int) questionLikeRepository.countByQuestion(question));
             questionRepository.save(question);
             return true;
         }
+    }
+
+    public long getLikeCount(Integer questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
+        // Cách 1: Dùng field `likes` đã tính sẵn (nhanh hơn)
+         return question.getLikes();
+        // Cách 2: Đếm trực tiếp từ bảng Like (chính xác hơn nếu có lỗi đồng bộ)
+        // return questionLikeRepository.countByQuestion(question);
     }
 
     public boolean isLikedByUser(Integer questionId, User user) {

@@ -209,7 +209,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <button
-                                                    class="btn btn-sm btn-outline-primary me-2 btn-like"
+                                                    class="btn btn-sm btn-outline-primary me-2 btn-like-question"
                                                     th:attr="data-question-id=${question.questionID}"
                                                     th:classappend="${likedQuestions != null && likedQuestions[question.questionID]} ? 'active' : ''">
                                                 <i class="fas fa-thumbs-up me-1"></i>
@@ -217,7 +217,7 @@
                                             </button>
 
                                             <button class="btn btn-sm btn-outline-secondary me-2 btn-toggle-comments"
-                                                    th:attr="data-target=|comments${iterStat.count}|">
+                                                    th:attr="data-target=|comments${iterStat.count}|, data-question-view-id=${question.questionID}">
                                                 <i class="fas fa-comment me-1"></i>
                                                 <span th:text="${#lists.size(question.answers)}">0</span>
                                             </button>
@@ -776,7 +776,7 @@
                         }
 
                         // Cập nhật số lượng like (nếu có endpoint trả về)
-                        // countSpan.textContent = data.likeCount || '0';
+                        countSpan.textContent = data.likeCount || '0';
                     }
                 } catch (error) {
                     console.error('Error handling like:', error);
@@ -791,6 +791,26 @@
                     await fetch(`${ctx}api/questions/${questionId}/view`, {
                         method: 'POST',
                     });
+                    if (response.ok) {
+                        // Tìm phần tử hiển thị view count của câu hỏi tương ứng
+                        const questionCard = document.querySelector(`.question-card[data-question-id="${questionId}"]`);
+                        if (questionCard) {
+                            // Selector này có thể cần điều chỉnh tùy cấu trúc HTML chính xác
+                            const viewCountSpan = questionCard.querySelector('.text-muted.small span:first-of-type');
+                            if (viewCountSpan) {
+                                let currentViews = parseInt(viewCountSpan.textContent.trim(), 10);
+                                if (!isNaN(currentViews)) {
+                                    viewCountSpan.textContent = currentViews + 1; // Tăng số view lên 1
+                                }
+                            } else {
+                                console.warn(`View count span not found for question ${questionId}`);
+                            }
+                        } else {
+                            console.warn(`Question card not found for question ${questionId}`);
+                        }
+                    } else {
+                        console.error(`Failed to record view for question ${questionId}. Status: ${response.status}`);
+                    }
                 } catch (error) {
                     console.error('Error recording view:', error);
                 }
