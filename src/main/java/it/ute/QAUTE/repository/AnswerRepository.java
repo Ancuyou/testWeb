@@ -89,4 +89,45 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
             @Param("endDate") LocalDateTime endDate
     );
 
+    // Đếm tổng số câu trả lời của một consultant trong khoảng thời gian
+    @Query("""
+    SELECT COUNT(a)
+    FROM Answer a
+    WHERE a.consultant.consultantID = :consultantId
+      AND a.dateAnswered BETWEEN :startDate AND :endDate
+    """)
+    long countConsultantAllAnswers(
+            @Param("consultantId") Integer consultantId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    //Tính thời gian phản hồi trung bình của một consultant (giờ)
+    @Query(value = """
+    SELECT AVG(TIMESTAMPDIFF(HOUR, q.DateSend, a.DateAnswered))
+    FROM Answer a
+    JOIN Question q ON a.QuestionID = q.QuestionID
+    WHERE a.ConsultantID = :consultantId
+      AND a.DateAnswered BETWEEN :startDate AND :endDate
+    """, nativeQuery = true)
+    Double averageConsultantResponseTime(
+            @Param("consultantId") Integer consultantId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    // Đếm số lượng user duy nhất mà consultant đã trả lời
+    @Query("""
+    SELECT COUNT(DISTINCT a.question.user.userID)
+    FROM Answer a
+    WHERE a.consultant.consultantID = :consultantId
+      AND a.dateAnswered BETWEEN :startDate AND :endDate
+    """)
+    long countDistinctUsersAnsweredByConsultant(
+            @Param("consultantId") Integer consultantId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+
 }

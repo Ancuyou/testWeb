@@ -625,52 +625,48 @@
 
             <!-- Right Column: Sidebar -->
             <div class="col-lg-4">
-                <!-- Gợi ý cho bạn -->
+                <!-- Sự kiện sắp diễn ra -->
                 <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="fas fa-lightbulb me-2 text-warning"></i>Sự kiện sắp diễn ra
+                        </h6>
+                    </div>
                     <div class="card-body p-3">
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
-                                <h6 class="mb-0 fw-bold">
-                                    <i class="fas fa-lightbulb me-2 text-warning"></i>Sự kiện sắp diễn ra
-                                </h6>
+                        <div th:if="${recentEvents == null or #lists.isEmpty(recentEvents)}" class="text-center text-muted py-3">
+                            <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                            <p class="mb-0 small">Hiện chưa có sự kiện nào sắp diễn ra.</p>
+                        </div>
+
+                        <div th:unless="${recentEvents == null or #lists.isEmpty(recentEvents)}">
+                            <div th:each="event, iterStat : ${recentEvents}" class="mb-3 pb-3" th:classappend="${!iterStat.last} ? 'border-bottom'">
+                                <a th:href="@{/user/events/{id}(id=${event.eventID})}" class="text-decoration-none text-dark">
+                                    <div class="d-flex align-items-start">
+                                        <div class="rounded p-2 me-2"
+                                             th:classappend="${event.type.name() == 'Workshop'} ? 'bg-warning bg-opacity-10' : (${event.type.name() == 'Consultation'} ? 'bg-success bg-opacity-10' : 'bg-info bg-opacity-10')">
+                                            <i class="fas"
+                                               th:classappend="${event.type.name() == 'Workshop'} ? 'fa-chalkboard-teacher text-warning' : (${event.type.name() == 'Consultation'} ? 'fa-user-tie text-success' : 'fa-calendar-alt text-info')"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-semibold small" th:text="${event.title}">Tiêu đề sự kiện</h6>
+                                            <small class="text-primary d-block">
+                                                <i class="far fa-clock me-1"></i>
+                                                <span th:text="${#temporals.format(event.startTime, 'HH:mm dd/MM/yyyy')}">Thời gian</span>
+                                                <span class="badge ms-1" th:classappend="${event.mode.name() == 'Online'} ? 'bg-primary' : (${event.mode.name() == 'Offline'} ? 'bg-success' : 'bg-secondary')" th:text="${event.mode}">Hình thức</span>
+                                            </small>
+                                            <small class="text-muted d-block mt-1">
+                                                <i class="fas fa-user-circle me-1"></i>
+                                                <span th:text="${event.consultant?.profile?.fullName}">Tư vấn viên</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </a>
                             </div>
-                            <div class="card-body p-3">
-                                <div th:if="${recentEvents == null or #lists.isEmpty(recentEvents)}" class="text-center text-muted py-3">
-                                    <i class="fas fa-calendar-times fa-2x mb-2"></i>
-                                    <p class="mb-0 small">Hiện chưa có sự kiện nào sắp diễn ra.</p>
-                                </div>
 
-                                <div th:unless="${recentEvents == null or #lists.isEmpty(recentEvents)}">
-                                    <div th:each="event, iterStat : ${recentEvents}" class="mb-3 pb-3" th:classappend="${!iterStat.last} ? 'border-bottom'">
-                                        <a th:href="@{/user/events/{id}(id=${event.eventID})}" class="text-decoration-none text-dark">
-                                            <div class="d-flex align-items-start">
-                                                <div class="rounded p-2 me-2"
-                                                     th:classappend="${event.type.name() == 'Workshop'} ? 'bg-warning bg-opacity-10' : (${event.type.name() == 'Consultation'} ? 'bg-success bg-opacity-10' : 'bg-info bg-opacity-10')">
-                                                    <i class="fas"
-                                                       th:classappend="${event.type.name() == 'Workshop'} ? 'fa-chalkboard-teacher text-warning' : (${event.type.name() == 'Consultation'} ? 'fa-user-tie text-success' : 'fa-calendar-alt text-info')"></i>
-                                                </div>
-                                                <div class="flex-grow-1">
-                                                    <h6 class="mb-1 fw-semibold small" th:text="${event.title}">Tiêu đề sự kiện</h6>
-                                                    <small class="text-primary d-block">
-                                                        <i class="far fa-clock me-1"></i>
-                                                        <span th:text="${#temporals.format(event.startTime, 'HH:mm dd/MM/yyyy')}">Thời gian</span>
-                                                        <span class="badge ms-1" th:classappend="${event.mode.name() == 'Online'} ? 'bg-primary' : (${event.mode.name() == 'Offline'} ? 'bg-success' : 'bg-secondary')" th:text="${event.mode}">Hình thức</span>
-                                                    </small>
-                                                    <small class="text-muted d-block mt-1">
-                                                        <i class="fas fa-user-circle me-1"></i>
-                                                        <span th:text="${event.consultant?.profile?.fullName}">Tư vấn viên</span>
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-
-                                    <div class="mt-3 text-center">
-                                        <a th:href="@{/user/events}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                            Xem tất cả sự kiện <i class="fas fa-arrow-right ms-1"></i>
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="mt-3 text-center">
+                                <a th:href="@{/user/events}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    Xem tất cả sự kiện <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -709,7 +705,8 @@
                             <div class="col-6">
                                 <div class="p-2 bg-info bg-opacity-10 rounded">
                                     <h4 class="mb-0 fw-bold text-info" th:text="${userStats['totalLikes'] ?: 0}">0</h4>
-                                    <small class="text-muted">Lượt thích</small> </div>
+                                    <small class="text-muted">Lượt thích</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -751,9 +748,14 @@
                                  class="rounded-circle shadow-sm"
                                  style="width: 100px; height: 100px; object-fit: cover; border: 4px solid #e0f2fe;"
                                  alt="Tư vấn viên">
-                            <span class="position-absolute bottom-0 end-0 bg-success border border-white border-3 rounded-circle"
+                            <span th:if="${consultant.isOnline}"
+                                  class="position-absolute bottom-0 end-0 bg-success border border-white border-3 rounded-circle"
                                   style="width: 20px; height: 20px;"
                                   title="Online"></span>
+                            <span th:unless="${consultant.isOnline}"
+                                  class="position-absolute bottom-0 end-0 bg-secondary border border-white border-3 rounded-circle"
+                                  style="width: 20px; height: 20px;"
+                                  th:title="${consultant.onlineStatusString}"></span>
                         </div>
 
                         <!-- Name -->
@@ -775,16 +777,16 @@
                         <!-- Stats (optional - có thể thêm nếu có data) -->
                         <div class="row text-center mb-3 small text-muted">
                             <div class="col-4">
-                                <div class="fw-semibold text-primary">4.9</div>
-                                <div style="font-size: 0.75rem;">Đánh giá</div>
+                                <div class="fw-semibold text-success" th:text="${consultant.totalAnswers ?: 0}">0</div>
+                                <div style="font-size: 0.75rem;">Trả lời</div>
                             </div>
                             <div class="col-4">
-                                <div class="fw-semibold text-success">250+</div>
-                                <div style="font-size: 0.75rem;">Tư vấn</div>
+                                <div class="fw-semibold text-warning" th:text="${consultant.avgResponseTime != null ? #numbers.formatDecimal(consultant.avgResponseTime/60, 1, 1) + 'h' : '-'}">0h</div>
+                                <div style="font-size: 0.75rem;">P.Hồi TB</div>
                             </div>
                             <div class="col-4">
-                                <div class="fw-semibold text-warning">98%</div>
-                                <div style="font-size: 0.75rem;">Hài lòng</div>
+                                <div class="fw-semibold text-info" th:text="${consultant.totalUsersAnswered ?: 0}">0</div>
+                                <div style="font-size: 0.75rem;">User</div>
                             </div>
                         </div>
 
@@ -812,6 +814,11 @@
             <i class="fas fa-user-slash fa-4x text-muted opacity-25 mb-4"></i>
             <h5 class="text-muted mb-3">Chưa có tư vấn viên</h5>
             <p class="text-muted">Vui lòng quay lại sau</p>
+        </div>
+        <div class="text-center mt-4">
+            <a th:href="@{/user/consultants}" class="btn btn-outline-primary rounded-pill px-4 py-2">
+                Xem tất cả tư vấn viên <i class="fas fa-arrow-right ms-2"></i>
+            </a>
         </div>
     </div>
 </section>
