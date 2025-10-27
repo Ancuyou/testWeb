@@ -247,6 +247,22 @@
         box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
         transform: translateY(-2px);
     }
+    .sticky-sidebar {
+        position: sticky;
+        top: 100px; /* Khoảng cách từ top khi sticky */
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    /* Optional: ẩn scrollbar nhưng vẫn scroll được */
+    .sticky-sidebar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sticky-sidebar::-webkit-scrollbar-thumb {
+        background: #dee2e6;
+        border-radius: 4px;
+    }
     /* Responsive */
     @media (max-width: 991px) {
         .hero-animation-wrapper {
@@ -348,13 +364,11 @@
                     </div>
 
                     <!-- Main Title -->
-                    <div class="mb-4 animate__animated animate__fadeInLeft animate__delay-1s">
+                    <div class="mb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.3s;">
                         <h2 class="display-6 fw-semibold mb-3">
                             Sẵn sàng đặt câu hỏi?
                         </h2>
                         <p class="lead mb-0 text-white-75" style="line-height: 1.8;">
-                            <!-- <span th:if="${account.createdDate != null}"
-                                  th:text="|Bạn đã tham gia QAUTE được ${#numbers.floor(#dates.diff(#dates.createNow(), account.createdDate) / 86400000)} ngày. Hãy tiếp tục kết nối với cộng đồng!|"> -->
                                 Chào mừng bạn đến với cộng đồng sinh viên năng động!
                             </span>
                             <span th:if="${account.createdDate == null}">
@@ -364,7 +378,7 @@
                     </div>
 
                     <!-- CTA Buttons -->
-                    <div class="d-flex flex-wrap gap-3 mb-5 animate__animated animate__fadeInUp animate__delay-2s">
+                    <div class="d-flex flex-wrap gap-3 mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
                         <a th:href="@{/user/questions}" class="btn btn-warning btn-lg px-4 py-3 shadow-lg hero-btn">
                             <i class="fas fa-question-circle me-2"></i>Đặt câu hỏi ngay
                         </a>
@@ -374,7 +388,7 @@
                     </div>
 
                     <!-- Stats Cards -->
-                    <div class="row g-3 animate__animated animate__fadeInUp animate__delay-3s">
+                    <div class="row g-3 animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
                         <div class="col-4">
                             <div class="stats-card bg-white bg-opacity-10 backdrop-blur rounded-3 p-3 text-center border border-white border-opacity-20">
                                 <div class="display-5 fw-bold text-warning mb-1" th:text="${userStats.questionsAsked}">12</div>
@@ -462,7 +476,7 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a th:href="@{/user/chat}" class="text-decoration-none">
+                <a th:href="@{/user/consultants}" class="text-decoration-none">
                     <div class="card border-0 shadow-sm h-100 text-center shadow-hover">
                         <div class="card-body py-3">
                             <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
@@ -490,14 +504,14 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a th:href="@{/user/questions}" class="text-decoration-none">
+                <a th:href="@{/user/events}" class="text-decoration-none">
                     <div class="card border-0 shadow-sm h-100 text-center shadow-hover">
                         <div class="card-body py-3">
                             <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
                                  style="width: 50px; height: 50px;">
                                 <i class="fas fa-star text-warning fa-2x"></i>
                             </div>
-                            <h6 class="mb-1 fw-bold text-dark">Câu hỏi được quan tâm</h6>
+                            <h6 class="mb-1 fw-bold text-dark">Sụ kiện nổi bật</h6>
                             <small class="text-muted">Trending hôm nay</small>
                         </div>
                     </div>
@@ -988,9 +1002,8 @@
 
             <!-- Right Column: Sidebar -->
             <div class="col-lg-4">
-                <div class="sticky-sidebar">
                     <!-- Hot Topics Card -->
-                    <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="card border-0 shadow-sm mb-4 sticky-sidebar animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
                         <div class="card-header text-white py-3 border-0"
                              style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                             <h6 class="mb-0 fw-semibold">
@@ -1013,56 +1026,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Online Users Card -->
-                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-                        <div class="card-header text-white py-3 border-0"
-                             style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                            <h6 class="mb-0 fw-semibold">
-                                <i class="fas fa-users me-2"></i>Đang Online
-                                <span class="badge bg-white text-success ms-2">127</span>
-                            </h6>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
-                                <div class="position-relative">
-                                    <img src="https://via.placeholder.com/35" class="rounded-circle" alt="User" style="width: 35px; height: 35px;">
-                                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
-                                </div>
-                                <div class="ms-3 flex-grow-1">
-                                    <div class="fw-medium text-dark mb-0">Lê Văn Cường</div>
-                                    <small class="text-muted">Sinh viên K18</small>
-                                </div>
-                                <span class="badge bg-success-subtle text-success px-2 py-1 small">Online</span>
-                            </div>
-                            <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
-                                <div class="position-relative">
-                                    <img src="https://via.placeholder.com/35" class="rounded-circle" alt="User" style="width: 35px; height: 35px;">
-                                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
-                                </div>
-                                <div class="ms-3 flex-grow-1">
-                                    <div class="fw-medium text-dark mb-0">Phạm Thị Dung</div>
-                                    <small class="text-muted">Sinh viên K19</small>
-                                </div>
-                                <span class="badge bg-success-subtle text-success px-2 py-1 small">Online</span>
-                            </div>
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="position-relative">
-                                    <img src="https://via.placeholder.com/35" class="rounded-circle" alt="User" style="width: 35px; height: 35px;">
-                                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
-                                </div>
-                                <div class="ms-3 flex-grow-1">
-                                    <div class="fw-medium text-dark mb-0">Hoàng Minh Tuấn</div>
-                                    <small class="text-muted">Tư vấn viên</small>
-                                </div>
-                                <span class="badge bg-success-subtle text-success px-2 py-1 small">Online</span>
-                            </div>
-                            <div class="text-center pt-3 border-top">
-                                <small class="text-muted">và <strong>124 người</strong> khác đang online...</small>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

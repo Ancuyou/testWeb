@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -24,9 +25,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 import java.security.Principal;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class HomeController {
@@ -264,5 +267,69 @@ public class HomeController {
         accountService.save(account);
         System.out.println("lưu thành công");
         return "redirect:/home/profile";
+    }
+    @GetMapping("/user/consultants")
+    public String showConsultantsPage(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "name_asc") String sortBy, // Mặc định sắp xếp theo tên
+            @RequestParam(required = false, defaultValue = "30days") String timeRange, // Mặc định 30 ngày
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size, // Ví dụ 9 cards mỗi trang (3x3 grid)
+            Model model,
+            Principal principal) {
+        if (principal == null) {
+            return "redirect:/auth/login"; // Yêu cầu đăng nhập
+        }
+        Account currentAccount = accountService.findUserByUsername(principal.getName());
+        if (currentAccount == null) {
+            // Optional: Handle case where account might not be found
+            return "redirect:/auth/login?error=account_not_found";
+        }
+        model.addAttribute("account", currentAccount);
+        // Lấy thông tin người dùng hiện tại (để truyền vào navbar)
+        Profiles currentUserProfile = userService.getCurrentUserProfile(principal.getName());
+        model.addAttribute("currentUserProfile", currentUserProfile); // Đổi tên biến để rõ ràng hơn
+        // Lấy danh sách consultants đã được sắp xếp và lọc theo thời gian
+        List<ConsultantDTO> allConsultants = consultantService.getConsultantsWithSortingAndFilter(sortBy, timeRange);
+        // Lọc theo keyword (nếu có) - Lọc trên danh sách đã có stats
+        List<ConsultantDTO> filteredConsultants;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String lowerKeyword = keyword.trim().toLowerCase();
+            filteredConsultants = allConsultants.stream()
+                    .filter(c -> c.getFullName().toLowerCase().contains(lowerKeyword))
+                    // Thêm điều kiện lọc khác nếu cần (ví dụ: theo specialization)
+                    .collect(Collectors.toList());
+        } else {
+            filteredConsultants = new ArrayList<>(allConsultants);
+        }
+        // Phân trang thủ công trên danh sách đã lọc và sắp xếp
+        int start = Math.min(page * size, filteredConsultants.size());
+        int end = Math.min((page + 1) * size, filteredConsultants.size());
+        List<ConsultantDTO> paginatedConsultants = filteredConsultants.subList(start, end);
+        Page<ConsultantDTO> consultantPage = new PageImpl<>(paginatedConsultants, PageRequest.of(page, size), filteredConsultants.size());
+        model.addAttribute("consultants", consultantPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", consultantPage.getTotalPages());
+        model.addAttribute("totalItems", consultantPage.getTotalElements());
+        // Truyền các tham số tìm kiếm/lọc/sắp xếp lại view để giữ trạng thái
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("timeRange", timeRange);
+        // Truyền các tùy chọn cho dropdowns
+        model.addAttribute("sortOptions", Map.of(
+                "name_asc", "Tên A-Z",
+                "answers_desc", "Trả lời nhiều nhất",
+                "answers_asc", "Trả lời ít nhất",
+                "response_time_asc", "Phản hồi nhanh nhất",
+                "response_time_desc", "Phản hồi chậm nhất"
+                // "experience_desc", "Kinh nghiệm nhiều nhất" // Thêm nếu cần
+        ));
+        model.addAttribute("timeOptions", Map.of(
+                "7days", "7 ngày qua",
+                "30days", "30 ngày qua",
+                "90days", "90 ngày qua",
+                "all", "Toàn thời gian"
+        ));
+        return "pages/user/consultants"; // Trả về view mới
     }
 }

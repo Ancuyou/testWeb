@@ -5,176 +5,180 @@
     <style>
         .consultant-card {
             transition: all 0.3s ease;
+            height: 100%; /* Đảm bảo các card cao bằng nhau */
+            display: flex; /* Cho phép footer đẩy xuống dưới */
+            flex-direction: column;
         }
         .consultant-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-        .online-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #28a745;
-            display: inline-block;
-            margin-right: 5px;
+        .card-body {
+            flex-grow: 1; /* Cho phép body co giãn */
         }
-        .offline-indicator {
-            width: 10px;
-            height: 10px;
+        .online-indicator {
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background-color: #6c757d;
             display: inline-block;
-            margin-right: 5px;
+            margin-right: 6px;
+            border: 2px solid white;
+        }
+        .bg-online { background-color: #198754; } /* Bootstrap success */
+        .bg-offline { background-color: #6c757d; } /* Bootstrap secondary */
+
+        .consultant-avatar {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border: 4px solid #e9ecef;
+        }
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+        }
+        .btn-chat {
+            transition: all 0.3s ease;
+        }
+        .btn-chat:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand text-primary fw-bold fs-3" href="/user/home">
-                <i class="fas fa-graduation-cap me-2"></i>QAUTE
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="/user/home">Trang chủ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold active" href="/user/consultants">Tư vấn viên</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold" href="/user/history">Lịch sử</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img th:if="${currentUserProfile.avatar}" th:src="${currentUserProfile.avatar}" class="rounded-circle me-2" alt="Avatar" width="32" height="32">
-                            <img th:unless="${currentUserProfile.avatar}" src="https://via.placeholder.com/32" class="rounded-circle me-2" alt="Avatar" width="32" height="32">
-                            <span class="fw-semibold" th:text="${currentUserProfile.fullName}">Nguyễn Văn A</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/user/profile"><i class="fas fa-user me-2"></i>Hồ sơ cá nhân</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<th:block th:replace="~{fragments/user/user-navbar :: user-navbar}"></th:block>
 
-    <!-- Main Content -->
-    <div class="container" style="margin-top: 100px; min-height: 70vh;">
-        <h2 class="mb-4">Danh sách tư vấn viên</h2>
-        
-        <!-- Search and Filter -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <input type="text" class="form-control" id="searchConsultant" placeholder="Tìm kiếm tư vấn viên...">
-                    <button class="btn btn-primary" type="button">
-                        <i class="fas fa-search"></i>
+<div class="container" style="margin-top: 100px; min-height: 70vh;">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold mb-3">
+            <i class="fas fa-user-tie text-primary me-2"></i>Danh sách Tư vấn viên
+        </h1>
+        <p class="lead text-muted">Tìm kiếm và kết nối với các chuyên gia phù hợp</p>
+    </div>
+
+    <form th:action="@{/user/consultants}" method="get" class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-4">
+                    <label for="keywordInput" class="form-label fw-semibold">Tìm kiếm theo tên</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="keywordInput" name="keyword"
+                               th:value="${keyword}" placeholder="Nhập tên tư vấn viên...">
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <label for="sortSelect" class="form-label fw-semibold">Sắp xếp theo</label>
+                    <select class="form-select" id="sortSelect" name="sortBy">
+                        <option th:each="option : ${sortOptions}"
+                                th:value="${option.key}"
+                                th:text="${option.value}"
+                                th:selected="${option.key == sortBy}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <label for="timeRangeSelect" class="form-label fw-semibold">Thống kê trong</label>
+                    <select class="form-select" id="timeRangeSelect" name="timeRange">
+                        <option th:each="option : ${timeOptions}"
+                                th:value="${option.key}"
+                                th:text="${option.value}"
+                                th:selected="${option.key == timeRange}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <button class="btn btn-primary w-100" type="submit">
+                        <i class="fas fa-filter me-2"></i>Áp dụng
                     </button>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="d-flex justify-content-md-end">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-outline-primary active">Tất cả</button>
-                        <button type="button" class="btn btn-outline-primary">Đang online</button>
-                        <button type="button" class="btn btn-outline-primary">Chuyên gia</button>
+        </div>
+    </form>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:if="${!#lists.isEmpty(consultants)}">
+        <div class="col" th:each="c : ${consultants}">
+            <div class="card border-0 shadow-sm consultant-card hover-lift">
+                <div class="card-body text-center p-4">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img th:src="${c.avatar != null ? c.avatar : '/images/default_avatar.png'}"
+                             class="rounded-circle consultant-avatar shadow-sm"
+                             alt="Avatar">
+                        <span class="online-indicator position-absolute bottom-0 end-0 me-2 mb-1"
+                              th:classappend="${c.isOnline} ? 'bg-online' : 'bg-offline'"
+                              th:title="${c.onlineStatusString}">
+                            </span>
                     </div>
+                    <h5 class="card-title fw-bold mb-1" th:text="${c.fullName}">Tên TVV</h5>
+                    <p class="text-muted mb-2">
+                        <span th:text="${c.experienceYears + ' năm kinh nghiệm'}"></span>
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 small text-muted mb-3">
+                            <span title="Số câu trả lời">
+                                <i class="fas fa-comments text-success me-1"></i>
+                                <strong th:text="${c.totalAnswers}">0</strong>
+                            </span>
+                        <span title="Thời gian phản hồi trung bình (giờ)">
+                                <i class="fas fa-clock text-warning me-1"></i>
+                                <strong th:text="${c.avgResponseTime != null ? #numbers.formatDecimal(c.avgResponseTime, 1, 1) + 'h' : '-'}">-</strong>
+                            </span>
+                        <span title="Số người dùng đã tư vấn">
+                                <i class="fas fa-users text-info me-1"></i>
+                                <strong th:text="${c.totalUsersAnswered}">0</strong>
+                            </span>
+                    </div>
+                    <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold btn-chat consultant-chat-btn"
+                            th:attr="data-profile-id=${c.profileID},
+                                          data-consultant-id=${c.consultantID},
+                                          data-consultant-name=${c.fullName},
+                                          data-consultant-avatar=${c.avatar}"
+                            onclick="startChatWithConsultant(this)">
+                        <i class="fas fa-comment-dots me-2"></i>Chat ngay
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <!-- Consultants List -->
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <div class="col" th:each="consultant : ${consultants}">
-                <div class="card h-100 border-0 shadow-sm consultant-card">
-                    <div class="card-body text-center p-4">
-                        <div class="position-relative d-inline-block mb-3">
-                            <img th:if="${consultant.avatar}" th:src="${consultant.avatar}" class="rounded-circle" alt="Consultant" width="100" height="100">
-                            <img th:unless="${consultant.avatar}" src="https://via.placeholder.com/100" class="rounded-circle" alt="Consultant" width="100" height="100">
-                            <span th:if="${consultant.isOnline}" class="position-absolute bottom-0 end-0 bg-success rounded-circle p-1 border border-white"></span>
-                            <span th:unless="${consultant.isOnline}" class="position-absolute bottom-0 end-0 bg-secondary rounded-circle p-1 border border-white"></span>
-                        </div>
-                        <h5 class="card-title" th:text="${consultant.fullName}">Họ tên tư vấn viên</h5>
-                        <p class="text-muted mb-2" th:text="${consultant.specialization ?: 'Chuyên viên tư vấn'}">Chuyên viên tư vấn</p>
-                        
-                        <div class="mb-3">
-                            <span class="badge bg-primary me-1">Tâm lý</span>
-                            <span class="badge bg-info">Học tập</span>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="text-warning">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <small class="text-muted ms-1">(4.9)</small>
-                            </div>
-                            <div>
-                                <span th:if="${consultant.isOnline}" class="text-success">
-                                    <i class="fas fa-circle me-1 small"></i>Online
-                                </span>
-                                <span th:unless="${consultant.isOnline}" class="text-secondary">
-                                    <i class="fas fa-circle me-1 small"></i>Offline
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <a th:href="@{/user/chat/{profileId}(profileId=${consultant.profileID})}" class="btn btn-primary">
-                                <i class="fas fa-comment me-2"></i>Chat ngay
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Pagination -->
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                <li class="page-item disabled">
-                    <a class="page-link" href="#" tabindex="-1">Trang trước</a>
-                </li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item">
-                    <a class="page-link" href="#">Trang sau</a>
-                </li>
-            </ul>
-        </nav>
     </div>
-    
-    <!-- Footer -->
-    <div th:replace="~{fragments/footer :: footer}"></div>
-    
-    <script>
-        // Search functionality
-        document.getElementById('searchConsultant').addEventListener('keyup', function() {
-            let filter = this.value.toUpperCase();
-            let cards = document.querySelectorAll('.consultant-card');
-            
-            cards.forEach(card => {
-                let name = card.querySelector('.card-title').textContent;
-                if (name.toUpperCase().indexOf(filter) > -1) {
-                    card.parentElement.style.display = "";
-                } else {
-                    card.parentElement.style.display = "none";
-                }
-            });
-        });
-    </script>
+
+    <div class="text-center py-5" th:if="${#lists.isEmpty(consultants)}">
+        <i class="fas fa-user-slash fa-4x text-muted mb-4"></i>
+        <h5 class="text-muted">Không tìm thấy tư vấn viên nào</h5>
+        <p class="text-muted">Vui lòng thử lại với bộ lọc khác.</p>
+        <a th:href="@{/user/consultants}" class="btn btn-outline-primary">
+            <i class="fas fa-redo me-2"></i> Tải lại danh sách
+        </a>
+    </div>
+
+
+    <nav class="mt-5" th:if="${totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/user/consultants(page=${currentPage - 1}, keyword=${keyword}, sortBy=${sortBy}, timeRange=${timeRange})}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/user/consultants(page=${i}, keyword=${keyword}, sortBy=${sortBy}, timeRange=${timeRange})}"
+                   th:text="${i + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/user/consultants(page=${currentPage + 1}, keyword=${keyword}, sortBy=${sortBy}, timeRange=${timeRange})}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div th:replace="~{fragments/chat-bubble :: chat-bubble}"></div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    // Có thể thêm JS để xử lý filter/sort mà không reload trang (AJAX)
+    // Tuy nhiên, với form submit và reload trang như hiện tại là đủ dùng
+    console.log("Consultants page loaded.");
+</script>
 </body>
 </html>

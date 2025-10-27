@@ -350,55 +350,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Online Users Card -->
-                            <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-                                <div class="card-header text-white py-3 border-0"
-                                     style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                                    <h6 class="mb-0 fw-semibold">
-                                        <i class="fas fa-users me-2"></i>Đang Online
-                                        <span class="badge bg-white text-success ms-2">127</span>
-                                    </h6>
-                                </div>
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
-                                        <div class="position-relative">
-                                            <img src="https://via.placeholder.com/35" class="rounded-circle" alt="User" style="width: 35px; height: 35px;">
-                                            <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
-                                        </div>
-                                        <div class="ms-3 flex-grow-1">
-                                            <div class="fw-medium text-dark mb-0">Lê Văn Cường</div>
-                                            <small class="text-muted">Sinh viên K18</small>
-                                        </div>
-                                        <span class="badge bg-success-subtle text-success px-2 py-1 small">Online</span>
-                                    </div>
-                                    <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
-                                        <div class="position-relative">
-                                            <img src="https://via.placeholder.com/35" class="rounded-circle" alt="User" style="width: 35px; height: 35px;">
-                                            <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
-                                        </div>
-                                        <div class="ms-3 flex-grow-1">
-                                            <div class="fw-medium text-dark mb-0">Phạm Thị Dung</div>
-                                            <small class="text-muted">Sinh viên K19</small>
-                                        </div>
-                                        <span class="badge bg-success-subtle text-success px-2 py-1 small">Online</span>
-                                    </div>
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="position-relative">
-                                            <img src="https://via.placeholder.com/35" class="rounded-circle" alt="User" style="width: 35px; height: 35px;">
-                                            <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
-                                        </div>
-                                        <div class="ms-3 flex-grow-1">
-                                            <div class="fw-medium text-dark mb-0">Hoàng Minh Tuấn</div>
-                                            <small class="text-muted">Tư vấn viên</small>
-                                        </div>
-                                        <span class="badge bg-success-subtle text-success px-2 py-1 small">Online</span>
-                                    </div>
-                                    <div class="text-center pt-3 border-top">
-                                        <small class="text-muted">và <strong>124 người</strong> khác đang online...</small>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -505,6 +456,7 @@
     </div>
 
     <div th:replace="~{fragments/report :: reportModal}"></div>
+    <div th:replace="~{fragments/chat-bubble :: chat-bubble}"></div>
     <div th:replace="~{fragments/toast :: toast}"></div>
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
